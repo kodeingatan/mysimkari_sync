@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Elevra Lumina - Data Entry Systems</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#0b513d",
+                        "tertiary-container": "#7ab8a0",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-background": "#191c1e",
+                        "outline-variant": "#bccbb9",
+                        "error": "#ba1a1a",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#006e2f",
+                        "on-secondary-container": "#616363",
+                        "surface": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "outline": "#6d7b6c",
+                        "primary-fixed": "#6bff8f",
+                        "inverse-primary": "#4ae176",
+                        "secondary": "#5d5f5f",
+                        "on-surface": "#191c1e",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-tertiary-fixed": "#002117",
+                        "inverse-surface": "#2d3133",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#005321",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#3d4a3d",
+                        "tertiary-fixed-dim": "#95d3ba",
+                        "primary": "#006e2f",
+                        "surface-container-high": "#e6e8ea",
+                        "primary-container": "#22c55e",
+                        "on-tertiary-container": "#004937",
+                        "surface-container-low": "#f2f4f6",
+                        "on-error-container": "#93000a",
+                        "background": "#f7f9fb",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-primary-container": "#004b1e",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#2b6954",
+                        "surface-bright": "#f7f9fb",
+                        "primary-fixed-dim": "#4ae176",
+                        "tertiary-fixed": "#b0f0d6",
+                        "surface-container": "#eceef0",
+                        "secondary-container": "#dfe0e0",
+                        "on-primary-fixed": "#002109",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "card-padding": "32px",
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "margin-container": "64px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Manrope"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Manrope"],
+                        "logo": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["80px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                        "logo": ["24px", {"letterSpacing": "-0.04em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>.glass-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255, 255, 255, 0.3)
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    }
+.bg-nature {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBzFAuqun9rSPfiHKlhGCq7PbqY0v7cpXpraZk-BlAa16l6KRIR2ZR-k-P077PDYc73fGheE-4f1Et6wut-zOug6H4Ej8YscF6QZ8r_SyADtt__mUN1BEqAmjOoI4NzTOJKAR2p7pR4YeG_8aj9RU9yB95QXKYf9Fetw5eFWG4rYMq2KUMlnA_hhcQnXBG8ZDhFGuLMvOKdDDyFzs296q5gdn3dEjhYMMktEnq2ArVl_T8KHWFZM0pDttUik6yGy2r2pYPDmPM-ukk);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24
+    }</style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased bg-nature">
+<aside class="fixed left-0 top-0 w-64 flex flex-col p-4 space-y-2 bg-white/15 dark:bg-slate-900/20 backdrop-blur-2xl rounded-3xl border border-white/20 m-4 h-[calc(100vh-2rem)] shadow-2xl z-40">
+<div class="px-4 py-6">
+<h1 class="text-lg font-black text-slate-800 dark:text-white font-logo">System Library</h1>
+<p class="text-xs text-slate-500 font-label-md">v1.0.4 Platinum</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">settings</span> General
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">dashboard</span> Layout
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">explore</span> Navigation
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-green-600 dark:text-green-400 font-bold border-r-4 border-green-500 bg-green-50/50 dark:bg-green-900/10 rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">edit_note</span> Data Entry
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">table_chart</span> Data Display
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">notification_important</span> Feedback
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors rounded-xl font-headline-md text-sm" href="#">
+<span class="material-symbols-outlined">stars</span> Pro Components
+            </a>
+</nav>
+</aside>
+<main class="ml-72 mr-16 my-8">
+<header class="sticky top-0 z-50 flex items-center justify-between w-full max-w-7xl mx-auto px-6 h-16 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-full border border-white/30 dark:border-white/10 mt-4 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-green-300 font-logo">Elevra Lumina</span>
+<nav class="hidden md:flex gap-4">
+<a class="text-slate-600 dark:text-slate-300 px-4 py-1.5 hover:bg-white/20 transition-all duration-300 font-label-md" href="#">Components</a>
+<a class="bg-white text-slate-900 px-4 py-1.5 rounded-full font-semibold font-label-md" href="#">Patterns</a>
+<a class="text-slate-600 dark:text-slate-300 px-4 py-1.5 hover:bg-white/20 transition-all duration-300 font-label-md" href="#">Guidelines</a>
+<a class="text-slate-600 dark:text-slate-300 px-4 py-1.5 hover:bg-white/20 transition-all duration-300 font-label-md" href="#">Resources</a>
+</nav>
+</div>
+<button class="bg-primary-container text-on-primary px-6 py-2 rounded-full font-bold active:scale-95 transition-transform shadow-[0_0_20px_rgba(34,197,94,0.3)]">Get Started</button>
+</header>
+<section class="max-w-7xl mx-auto mt-16 px-6">
+<div class="mb-12">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Data Entry Systems</h2>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl mt-4">A comprehensive suite of input components designed with glassmorphic depth and fluid ergonomics for premium data management interfaces.</p>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<!-- Main Form Canvas -->
+<div class="col-span-12 lg:col-span-8 glass-panel rounded-3xl p-card-padding">
+<form class="space-y-10">
+<!-- Section: Identity & Basics -->
+<div>
+<div class="flex items-center gap-3 mb-6">
+<span class="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm">person</span>
+</span>
+<h3 class="font-headline-md text-headline-md">Identity Details</h3>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-secondary ml-1">Display Name</label>
+<input class="w-full bg-white/10 border-b border-outline-variant focus:border-primary transition-all p-3 outline-none rounded-t-lg" placeholder="e.g. Lumina Design" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-secondary ml-1">Mentions Handle</label>
+<div class="relative">
+<span class="absolute left-3 top-3 text-secondary">@</span>
+<input class="w-full bg-white/10 border-b border-outline-variant focus:border-primary transition-all p-3 pl-8 outline-none rounded-t-lg" placeholder="username" type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Interactive Selection -->
+<div class="grid grid-cols-2 gap-8">
+<div class="space-y-6">
+<h4 class="font-headline-md text-lg text-on-surface">Preferences</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between glass-card p-4 rounded-2xl">
+<span class="font-label-md">Real-time Analytics</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-secondary-container rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between glass-card p-4 rounded-2xl">
+<span class="font-label-md">Cloud Sync</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-secondary-container rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<h4 class="font-headline-md text-lg text-on-surface">Experience Rating</h4>
+<div class="glass-card p-6 rounded-3xl flex flex-col items-center justify-center gap-4">
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-outline-variant">star</span>
+</div>
+<span class="font-label-md text-secondary">4.0 Average Score</span>
+</div>
+</div>
+</div>
+<!-- Section: Advanced Data -->
+<div>
+<h4 class="font-headline-md text-lg text-on-surface mb-6">Workflow Configuration</h4>
+<div class="grid grid-cols-3 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-xs text-secondary uppercase tracking-widest">Date Window</label>
+<div class="relative">
+<input class="w-full bg-white/20 border border-white/30 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" type="date"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-xs text-secondary uppercase tracking-widest">Shift Time</label>
+<input class="w-full bg-white/20 border border-white/30 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" type="time"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-xs text-secondary uppercase tracking-widest">Brand Hue</label>
+<input class="w-full h-11 bg-white/20 border border-white/30 rounded-xl p-1 cursor-pointer" type="color" value="#22c55e"/>
+</div>
+</div>
+</div>
+<!-- Slider Range -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-on-surface">Data Refresh Rate</label>
+<span class="text-primary font-bold">450ms</span>
+</div>
+<input class="w-full h-2 bg-secondary-container rounded-lg appearance-none cursor-pointer accent-primary" type="range"/>
+<div class="flex justify-between text-[10px] text-secondary font-label-md uppercase tracking-tighter">
+<span>Fastest (100ms)</span>
+<span>Standard</span>
+<span>Optimized (2000ms)</span>
+</div>
+</div>
+<div class="flex justify-end gap-4 pt-6 border-t border-white/10">
+<button class="px-8 py-3 rounded-full border border-white/30 font-label-md hover:bg-white/10 transition-colors" type="button">Discard</button>
+<button class="px-12 py-3 rounded-full bg-primary text-white font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform" type="submit">Save Configuration</button>
+</div>
+</form>
+</div>
+<!-- Side Panel Widgets -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Tree & Select Widget -->
+<div class="glass-card rounded-3xl p-6">
+<h4 class="font-headline-md text-lg mb-4">Resource Tree</h4>
+<div class="space-y-3">
+<div class="flex items-center gap-3 text-sm p-2 hover:bg-white/10 rounded-lg cursor-pointer">
+<span class="material-symbols-outlined text-primary">folder_open</span>
+<span>Project Assets</span>
+</div>
+<div class="ml-6 space-y-2">
+<div class="flex items-center gap-3 text-sm p-2 bg-primary/10 text-primary rounded-lg border border-primary/20">
+<span class="material-symbols-outlined text-sm">image</span>
+<span>Hero_Background.webp</span>
+</div>
+<div class="flex items-center gap-3 text-sm p-2 hover:bg-white/10 rounded-lg cursor-pointer">
+<span class="material-symbols-outlined text-sm">description</span>
+<span>Brand_Guidelines.pdf</span>
+</div>
+</div>
+<div class="flex items-center gap-3 text-sm p-2 hover:bg-white/10 rounded-lg cursor-pointer">
+<span class="material-symbols-outlined text-secondary">folder</span>
+<span class="text-secondary">Archived Items</span>
+</div>
+</div>
+</div>
+<!-- Upload Area -->
+<div class="glass-card rounded-3xl p-6 border-dashed border-2 border-primary/30 text-center">
+<div class="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+</div>
+<p class="font-headline-md text-sm">Drop manifest file here</p>
+<p class="text-xs text-secondary mt-1">Supports JSON, CSV, or XML (Max 50MB)</p>
+<button class="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 rounded-full text-xs font-bold transition-all border border-white/20">Browse Files</button>
+</div>
+<!-- Cascader/Select Showcase -->
+<div class="glass-card rounded-3xl p-6 space-y-4">
+<div class="space-y-2">
+<label class="text-xs font-label-md text-secondary uppercase">Regional Scope</label>
+<select class="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-sm appearance-none outline-none focus:ring-2 focus:ring-primary/20">
+<option>North America &gt; California</option>
+<option>Europe &gt; Germany</option>
+<option>Asia &gt; Tokyo</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-label-md text-secondary uppercase">Access Level</label>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-primary text-white rounded-full text-[10px] font-bold">ADMIN</span>
+<span class="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-bold">EDITOR</span>
+<span class="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-bold">VIEWER</span>
+</div>
+</div>
+</div>
+<!-- Transfer Widget Visual -->
+<div class="glass-card rounded-3xl p-6 overflow-hidden">
+<h4 class="font-headline-md text-lg mb-4">Asset Transfer</h4>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-white/5 p-2 rounded-xl border border-white/10 text-[10px] space-y-1">
+<div class="p-1.5 bg-white/10 rounded flex justify-between items-center">Item A <span class="material-symbols-outlined text-[10px]">chevron_right</span></div>
+<div class="p-1.5 bg-white/10 rounded flex justify-between items-center">Item B <span class="material-symbols-outlined text-[10px]">chevron_right</span></div>
+</div>
+<div class="bg-white/5 p-2 rounded-xl border border-white/10 text-[10px] space-y-1">
+<div class="p-1.5 bg-primary/20 text-primary rounded border border-primary/30 flex justify-between items-center"><span class="material-symbols-outlined text-[10px]">chevron_left</span> Item C</div>
+<div class="p-1.5 border border-white/5 rounded text-white/20">Empty</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="max-w-7xl mx-auto my-section-gap px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div class="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+<img alt="Modern office interior" class="w-full h-full object-cover" data-alt="A futuristic, glass-walled office workspace overlooking a vibrant, sunlit evergreen forest. The interior features minimalist white ergonomic desks and glowing green digital interface displays. Soft morning light filters through the foliage, creating a serene and productive atmosphere with a high-end, modern technological aesthetic. The scene emphasizes transparency and organic growth through light-mode color palettes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJakPxrami6XwQTZ-w7xfD8z7exMjvioMsC1OP72HHm8wroyfmc5fsMfYid10C4_OKQMFKxMkkQnTmfVeqjYDYknbANz58xq1oxJ0f86x0yAiDif0URFNiZDwdSUmHxoVtGUzHv-UWe5yJMn80l9eevmKp3nfD0kg9xGB3Uzya5tDqIi78WWAbqoi50JnfE1YZfCH6HMqX2zvp42zjuHb1cAFWubxyJS-oNcpiXRVDYuxTMACsjd7T03FCvcrgbFj6XGaDg683JcI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<p class="font-label-md text-xs uppercase tracking-widest opacity-80">Ecosystem Driven</p>
+<h4 class="font-headline-md text-2xl">Intuitive Precision</h4>
+</div>
+</div>
+<div class="space-y-6">
+<span class="px-4 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold border border-primary/20">CORE PRINCIPLES</span>
+<h3 class="font-headline-lg text-headline-lg leading-tight">Every interaction is a moment of clarity.</h3>
+<p class="font-body-lg text-secondary">Our data entry system minimizes cognitive load by using visual hierarchy and tactile feedback. We treat data as an organic flow rather than a static list.</p>
+<ul class="space-y-4">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="font-label-md">Real-time validation feedback</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="font-label-md">Smart default value prediction</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="font-label-md">Seamless multi-device synchronization</span>
+</li>
+</ul>
+</div>
+</section>
+<footer class="flex justify-between items-center px-12 mt-12 w-full max-w-7xl mx-auto border-t border-white/10 py-8">
+<p class="font-['Manrope'] text-xs text-slate-400">© 2024 Elevra Lumina Design System</p>
+<div class="flex gap-8">
+<a class="font-['Manrope'] text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Changelog</a>
+<a class="font-['Manrope'] text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Github</a>
+<a class="font-['Manrope'] text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Discord</a>
+<a class="font-['Manrope'] text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Support</a>
+</div>
+</footer>
+</main>
+<!-- Contextual FAB -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-primary-container text-on-primary rounded-full shadow-[0_0_30px_rgba(34,197,94,0.4)] flex items-center justify-center active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</body></html>

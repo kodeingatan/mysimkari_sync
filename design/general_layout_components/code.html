@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#0b513d",
+                    "tertiary-container": "#7ab8a0",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-background": "#191c1e",
+                    "outline-variant": "#bccbb9",
+                    "error": "#ba1a1a",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#006e2f",
+                    "on-secondary-container": "#616363",
+                    "surface": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "outline": "#6d7b6c",
+                    "primary-fixed": "#6bff8f",
+                    "inverse-primary": "#4ae176",
+                    "secondary": "#5d5f5f",
+                    "on-surface": "#191c1e",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "on-tertiary-fixed": "#002117",
+                    "inverse-surface": "#2d3133",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#005321",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#3d4a3d",
+                    "tertiary-fixed-dim": "#95d3ba",
+                    "primary": "#006e2f",
+                    "surface-container-high": "#e6e8ea",
+                    "primary-container": "#22c55e",
+                    "on-tertiary-container": "#004937",
+                    "surface-container-low": "#f2f4f6",
+                    "on-error-container": "#93000a",
+                    "background": "#f7f9fb",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-primary-container": "#004b1e",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#2b6954",
+                    "surface-bright": "#f7f9fb",
+                    "primary-fixed-dim": "#4ae176",
+                    "tertiary-fixed": "#b0f0d6",
+                    "surface-container": "#eceef0",
+                    "secondary-container": "#dfe0e0",
+                    "on-primary-fixed": "#002109",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "card-padding": "32px",
+                    "unit": "8px",
+                    "section-gap": "120px",
+                    "margin-container": "64px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-xl": ["Manrope"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "logo": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-xl": ["80px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "logo": ["24px", {"letterSpacing": "-0.04em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.glass-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255, 255, 255, 0.3)
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    }
+.nature-bg {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAmaHgsPuYfVbDX-ZScRc356NU94FK_AX7MRnBdC3z-oboCF69zXaabIw6ckTAx4oqO_IqaaPfKRqgD6Io8HEkrEoMUQKq4nQbOzIE40UeeHoqUS8CahSSEsKxjQ0hbk_NWse9ZCVjDB9KLj-9a15_vSBRRLpvIqhwyYIfGSQdYFquf9OcF-BkbxsEWGNMG6fCcSsT1iNWQQaE-PVnNdyg1ae0plHCrPb20W-_8es4-aKiKzmwty6vt-TonZXnkiWjSg0Kf9WMB-EY);
+    background-size: cover;
+    background-position: center
+    }</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen nature-bg">
+<!-- Level 2: Main Container Overlay -->
+<div class="fixed inset-0 bg-white/40 backdrop-blur-md pointer-events-none"></div>
+<!-- Layout Shell -->
+<div class="relative z-10 flex flex-col md:flex-row min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 w-64 flex flex-col p-4 space-y-2 bg-white/15 dark:bg-slate-900/20 backdrop-blur-2xl rounded-3xl border border-white/20 m-4 h-[calc(100vh-2rem)] shadow-2xl font-['Manrope'] text-sm hidden md:flex">
+<div class="px-4 py-6">
+<span class="text-lg font-black text-slate-800 dark:text-white">System Library</span>
+<p class="text-xs text-slate-500 opacity-70">v1.0.4 Platinum</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center space-x-3 px-4 py-3 text-green-600 dark:text-green-400 font-bold border-r-4 border-green-500 bg-green-50/50 dark:bg-green-900/10 group transition-all duration-200" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">settings</span>
+<span>General</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">dashboard</span>
+<span>Layout</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">explore</span>
+<span>Navigation</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">edit_note</span>
+<span>Data Entry</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">table_chart</span>
+<span>Data Display</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">notification_important</span>
+<span>Feedback</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">stars</span>
+<span>Pro Components</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-80 px-margin-container py-12 max-w-7xl">
+<!-- TopNavBar Component -->
+<header class="sticky top-0 z-50 flex items-center justify-between w-full px-6 h-16 bg-white/10 backdrop-blur-xl rounded-full border border-white/30 mt-4 shadow-[0_0_20px_rgba(34,197,94,0.1)] font-['Manrope'] antialiased tracking-tight mb-12">
+<div class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-green-300">Elevra Lumina</div>
+<nav class="hidden lg:flex items-center space-x-1">
+<a class="bg-white text-slate-900 px-4 py-1.5 rounded-full font-semibold active:scale-95 transition-transform" href="#">Components</a>
+<a class="text-slate-600 dark:text-slate-300 px-4 py-1.5 hover:bg-white/20 transition-all duration-300" href="#">Patterns</a>
+<a class="text-slate-600 dark:text-slate-300 px-4 py-1.5 hover:bg-white/20 transition-all duration-300" href="#">Guidelines</a>
+<a class="text-slate-600 dark:text-slate-300 px-4 py-1.5 hover:bg-white/20 transition-all duration-300" href="#">Resources</a>
+</nav>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-bold hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all">Get Started</button>
+</header>
+<!-- Typography & Icons Section (Bento Grid) -->
+<section class="mb-section-gap">
+<div class="mb-12">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Visual Foundations</h2>
+<p class="font-body-lg text-body-lg text-secondary">The core tokens that define the Elevra Lumina design language.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Typography Card -->
+<div class="glass-card rounded-3xl p-card-padding col-span-2 flex flex-col space-y-8">
+<div>
+<span class="font-label-md text-label-md text-primary mb-4 block">TYPOGRAPHY HIERARCHY</span>
+<h1 class="font-headline-xl text-headline-xl text-on-surface">Headline Extra Large</h1>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-4">Headline Large Title</h2>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-2">Headline Medium Section</h3>
+<p class="font-body-lg text-body-lg text-secondary mt-4 max-w-2xl">Body Large: Crafted for readability and elegance. Elevra Lumina uses Manrope for impact and Inter for information density. This balance creates a clear rhythm across complex interfaces.</p>
+<p class="font-body-md text-body-md text-secondary mt-2">Body Medium: Standard paragraph text for descriptions, labels, and secondary information.</p>
+</div>
+</div>
+<!-- Iconography Card -->
+<div class="glass-card rounded-3xl p-card-padding flex flex-col">
+<span class="font-label-md text-label-md text-primary mb-6 block">SYSTEM ICONOGRAPHY</span>
+<div class="grid grid-cols-4 gap-6 text-primary">
+<span class="material-symbols-outlined text-3xl">eco</span>
+<span class="material-symbols-outlined text-3xl">grid_view</span>
+<span class="material-symbols-outlined text-3xl">auto_awesome</span>
+<span class="material-symbols-outlined text-3xl">blur_on</span>
+<span class="material-symbols-outlined text-3xl">layers</span>
+<span class="material-symbols-outlined text-3xl">speed</span>
+<span class="material-symbols-outlined text-3xl">shield_with_heart</span>
+<span class="material-symbols-outlined text-3xl">hub</span>
+<span class="material-symbols-outlined text-3xl">view_in_ar</span>
+<span class="material-symbols-outlined text-3xl">monitoring</span>
+<span class="material-symbols-outlined text-3xl">token</span>
+<span class="material-symbols-outlined text-3xl">landscape</span>
+</div>
+<div class="mt-auto pt-8">
+<p class="font-label-md text-label-md text-secondary">Material Symbols Light</p>
+<p class="text-xs text-secondary/60">Optical Size 24, Weight 300</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Buttons & Actions Section -->
+<section class="mb-section-gap">
+<div class="mb-12">
+<h2 class="font-headline-md text-headline-md text-on-surface">Interactive Elements</h2>
+<div class="h-1 w-24 bg-primary mt-4 rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Standard Buttons -->
+<div class="glass-card rounded-3xl p-card-padding">
+<span class="font-label-md text-label-md text-primary mb-8 block">ACTION VARIANTS</span>
+<div class="flex flex-wrap gap-4 items-center">
+<button class="px-8 py-4 bg-primary text-on-primary rounded-xl font-bold shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:scale-105 transition-all">Primary Action</button>
+<button class="px-8 py-4 border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-all">Secondary</button>
+<button class="px-8 py-4 text-on-surface/70 hover:text-on-surface hover:bg-white/20 rounded-xl font-medium transition-all">Ghost Button</button>
+</div>
+<div class="mt-12 flex items-center space-x-4">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-lg hover:rotate-12 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full border border-outline-variant text-secondary hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="px-6 py-2 rounded-full border border-white/40 bg-white/10 backdrop-blur-md flex items-center space-x-2 text-sm font-semibold">
+<span class="material-symbols-outlined text-lg">download</span>
+<span>Export Data</span>
+</button>
+</div>
+</div>
+<!-- Splitter & Interaction Concept -->
+<div class="glass-card rounded-3xl p-card-padding overflow-hidden relative group">
+<span class="font-label-md text-label-md text-primary mb-8 block">SPLITTER PANEL CONCEPT</span>
+<div class="flex h-40 border border-white/20 rounded-2xl overflow-hidden bg-white/5">
+<div class="w-1/3 flex items-center justify-center border-r border-white/20 bg-white/10 p-4">
+<div class="text-center">
+<span class="block font-bold text-2xl">30%</span>
+<span class="text-[10px] uppercase tracking-widest text-secondary">Asset</span>
+</div>
+</div>
+<div class="flex-1 flex items-center justify-center p-4 relative">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-primary/50 cursor-col-resize hover:bg-primary transition-colors"></div>
+<div class="text-center">
+<span class="block font-bold text-2xl">70%</span>
+<span class="text-[10px] uppercase tracking-widest text-secondary">Viewport</span>
+</div>
+</div>
+</div>
+<div class="mt-6 flex justify-between items-center">
+<span class="text-sm text-secondary italic">Simulated responsive split behavior</span>
+<div class="flex space-x-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary/30"></div>
+<div class="w-2 h-2 rounded-full bg-primary/30"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Layout & Grid Systems (Masonry & Bento) -->
+<section class="mb-section-gap">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Layout Architecture</h2>
+<p class="text-secondary mt-2">Fluid structures and masonry conceptualization.</p>
+</div>
+<div class="flex space-x-2">
+<button class="p-2 rounded-lg bg-white/20 border border-white/20 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">grid_on</span>
+</button>
+<button class="p-2 rounded-lg bg-white/20 border border-white/20 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">splitscreen</span>
+</button>
+</div>
+</div>
+<!-- Masonry Grid Example -->
+<div class="columns-1 md:columns-2 lg:columns-3 gap-gutter space-y-gutter">
+<!-- Item 1 -->
+<div class="break-inside-avoid glass-card rounded-3xl p-6 hover:translate-y-[-4px] transition-transform cursor-pointer">
+<img class="w-full h-48 object-cover rounded-2xl mb-4" data-alt="A lush emerald green forest floor covered in delicate moss and vibrant fern leaves, bathed in soft morning sunlight filtering through a dense canopy. The lighting is ethereal and atmospheric, creating a peaceful and rejuvenating mood consistent with a modern light-mode design system. The colors are dominated by deep greens and bright lime accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsrVY55iGKRSYG0-K1gM8kFtfsDWMWS86RIneMbwHGrziW8lnPkIeQfUgJvSJsce_8QB7fYJ3TDqmGkWL5aLqTj2a6rlF-gBGJVk05Ahi8-O1CLScfxmB4JcUoSD8i6Gg6Ayv6kDAjmmu4eacRmHbnVBkIFtnAMsz7NGi6K9crKLOhyFwaV9sIZcnFprjFhqpKDZCl_TiohMRQI_QUrTVU2U41p2gQQkl_85vfY8dt1HhqDhRT4tyf0rRQMAp8AcDWfCLQ_l0_BsI"/>
+<h4 class="font-bold text-lg">Organic Structure</h4>
+<p class="text-sm text-secondary mt-2">Integrating nature-inspired patterns into digital workflows.</p>
+</div>
+<!-- Item 2 -->
+<div class="break-inside-avoid glass-card rounded-3xl p-6 h-40 flex flex-col justify-center items-center text-center bg-primary/5 border-primary/20">
+<span class="material-symbols-outlined text-primary text-4xl mb-2">auto_awesome</span>
+<span class="font-bold">Dynamic Scaling</span>
+</div>
+<!-- Item 3 -->
+<div class="break-inside-avoid glass-card rounded-3xl p-6">
+<div class="flex items-center space-x-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<span class="font-bold">Data Density</span>
+</div>
+<div class="space-y-3">
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[40%]"></div>
+</div>
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[65%]"></div>
+</div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="break-inside-avoid glass-card rounded-3xl p-6 border-l-4 border-l-primary">
+<h4 class="font-bold">Divider Example</h4>
+<div class="my-4 border-t border-white/20 w-full"></div>
+<p class="text-xs text-secondary leading-relaxed">Dividers in Elevra Lumina are low-opacity white lines, maintaining the glass aesthetic without breaking the visual flow.</p>
+</div>
+<!-- Item 5 -->
+<div class="break-inside-avoid glass-card rounded-3xl p-6 overflow-hidden">
+<img class="w-full h-64 object-cover rounded-2xl mb-4" data-alt="A single, majestic oak tree standing in a wide, misty field at sunrise. The soft, diffused light creates a serene and contemplative atmosphere with a palette of pale greens, soft greys, and warm gold highlights. The visual style is minimal and high-end, evoking a sense of clarity and growth that aligns perfectly with a premium technology brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSntZFXmX-Uodn5-fimWHs0fIIIk8Pg-C9lb6H3JR7snbsZlXvYWxwpHWEJpCMEsaTVZuhfIIUNkJuOj2VQxza9mYE8xPG-aaxiG03Xdy_yQe8Qb53cTGGsxgB5ztlb-FEERA16QUX_0hgklLiuNGKYWQUcMO-5QZvMP14NQur6dmp53dEDTKXTvhnZ1Cr7eu2mgsiGEUpp-mlKa_fd-bwuI2svouqQ-cejAW4-rlaer6F0JYc7Ng6MgTr6UukeqCIhdcx18iaMCc"/>
+<p class="font-label-md text-label-md text-primary uppercase">Nature x Tech</p>
+</div>
+</div>
+</section>
+<!-- Floating Action Button (FAB) -->
+<div class="fixed bottom-12 right-12 z-50">
+<button class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-[0_10px_30px_rgba(34,197,94,0.4)] hover:scale-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">chat_bubble</span>
+</button>
+</div>
+<!-- Footer Component -->
+<footer class="flex justify-between items-center px-12 mt-12 w-full max-w-7xl mx-auto py-8 border-t border-white/10 font-['Manrope'] text-xs text-slate-400">
+<div class="flex items-center space-x-6">
+<span>© 2024 Elevra Lumina Design System</span>
+</div>
+<div class="flex items-center space-x-6">
+<a class="text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Changelog</a>
+<a class="text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Github</a>
+<a class="text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Discord</a>
+<a class="text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors duration-200" href="#">Support</a>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Elevra Lumina | Pro Components</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#0b513d",
+                      "tertiary-container": "#7ab8a0",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-secondary-fixed-variant": "#454747",
+                      "on-background": "#191c1e",
+                      "outline-variant": "#bccbb9",
+                      "error": "#ba1a1a",
+                      "on-primary": "#ffffff",
+                      "surface-tint": "#006e2f",
+                      "on-secondary-container": "#616363",
+                      "surface": "#f7f9fb",
+                      "surface-variant": "#e0e3e5",
+                      "outline": "#6d7b6c",
+                      "primary-fixed": "#6bff8f",
+                      "inverse-primary": "#4ae176",
+                      "secondary": "#5d5f5f",
+                      "on-surface": "#191c1e",
+                      "secondary-fixed-dim": "#c6c6c7",
+                      "on-tertiary-fixed": "#002117",
+                      "inverse-surface": "#2d3133",
+                      "surface-dim": "#d8dadc",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#005321",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#3d4a3d",
+                      "tertiary-fixed-dim": "#95d3ba",
+                      "primary": "#006e2f",
+                      "surface-container-high": "#e6e8ea",
+                      "primary-container": "#22c55e",
+                      "on-tertiary-container": "#004937",
+                      "surface-container-low": "#f2f4f6",
+                      "on-error-container": "#93000a",
+                      "background": "#f7f9fb",
+                      "on-secondary-fixed": "#1a1c1c",
+                      "on-primary-container": "#004b1e",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-on-surface": "#eff1f3",
+                      "error-container": "#ffdad6",
+                      "tertiary": "#2b6954",
+                      "surface-bright": "#f7f9fb",
+                      "primary-fixed-dim": "#4ae176",
+                      "tertiary-fixed": "#b0f0d6",
+                      "surface-container": "#eceef0",
+                      "secondary-container": "#dfe0e0",
+                      "on-primary-fixed": "#002109",
+                      "secondary-fixed": "#e2e2e2",
+                      "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "card-padding": "32px",
+                      "unit": "8px",
+                      "section-gap": "120px",
+                      "margin-container": "64px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "headline-xl": ["Manrope"],
+                      "label-md": ["Inter"],
+                      "headline-lg": ["Manrope"],
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Manrope"],
+                      "logo": ["Manrope"]
+              },
+              "fontSize": {
+                      "headline-xl": ["80px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                      "logo": ["24px", {"letterSpacing": "-0.04em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>.glass-panel {
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    }
+.glass-card {
+    backdrop-filter: blur(40px);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4)
+    }
+.nature-bg {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuC5mMKzkVfdReUXwr1c8fvhcXdMajUbgaxAzftSsoM-iG3TOhlPcVtGqwS-SE8HoJLgcNRi706oKrQJ8wqhZyaJqJfdRRlrrv5Vlwd9SDoCqipGgKpgAJlqBtGpLFzangEsrftU6neepA1PMrvVfRAXiBCCFh2vGoAy4kMgcLN3XTvL5IAgmTlQJOX5MmmS7fLd-01nb-iTr7E9D5wD4Ptu6AUKGAy1sO3ZNEbvceyrtHLqFmUqnLiWBwHMJEH-ole6v_S2rEjOYVM);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24
+    }</style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased nature-bg min-h-screen">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 w-64 flex flex-col p-4 space-y-2 bg-white/15 dark:bg-slate-900/20 backdrop-blur-2xl rounded-3xl border border-white/20 m-4 h-[calc(100vh-2rem)] shadow-2xl z-40">
+<div class="px-4 py-6">
+<h1 class="text-lg font-black text-slate-800 dark:text-white font-logo">System Library</h1>
+<p class="text-xs text-slate-500 font-label-md">v1.0.4 Platinum</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="font-label-md">General</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="font-label-md">Layout</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">explore</span>
+<span class="font-label-md">Navigation</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">edit_note</span>
+<span class="font-label-md">Data Entry</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">table_chart</span>
+<span class="font-label-md">Data Display</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 hover:bg-white/30 transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">notification_important</span>
+<span class="font-label-md">Feedback</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-green-600 dark:text-green-400 font-bold border-r-4 border-green-500 bg-green-50/50 dark:bg-green-900/10 group" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-label-md">Pro Components</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-72 p-8 lg:p-12">
+<!-- Header / ProLayout Intro -->
+<header class="mb-12">
+<div class="flex justify-between items-end">
+<div>
+<span class="text-primary font-label-md tracking-widest uppercase">Enterprise Suite</span>
+<h2 class="font-headline-lg text-on-surface mt-2">Pro Components</h2>
+<p class="text-body-lg text-secondary mt-4 max-w-2xl">High-end enterprise-grade components styled with the Elevra Lumina glass design language. Precision performance meets organic aesthetics.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-md text-on-surface font-label-md hover:bg-white/20 transition-all active:scale-95">
+                        Documentation
+                    </button>
+<button class="px-6 py-3 rounded-full bg-primary text-on-primary font-label-md shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:brightness-110 transition-all active:scale-95">
+                        Create New Pro
+                    </button>
+</div>
+</div>
+</header>
+<!-- Bento Grid: ProTable & ProList Showcase -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- ProTable (Rich Toolbars & Actions) -->
+<section class="col-span-12 lg:col-span-8 glass-panel rounded-3xl p-card-padding">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="font-headline-md text-on-surface">ProTable</h3>
+<p class="text-body-md text-secondary">Real-time data synchronization with advanced filtering.</p>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined p-2 rounded-lg bg-white/20 text-secondary cursor-pointer hover:bg-white/40">refresh</span>
+<span class="material-symbols-outlined p-2 rounded-lg bg-white/20 text-secondary cursor-pointer hover:bg-white/40">filter_list</span>
+<span class="material-symbols-outlined p-2 rounded-lg bg-white/20 text-secondary cursor-pointer hover:bg-white/40">settings</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-white/10">
+<th class="pb-4 font-label-md text-secondary uppercase tracking-wider">Asset Name</th>
+<th class="pb-4 font-label-md text-secondary uppercase tracking-wider">Status</th>
+<th class="pb-4 font-label-md text-secondary uppercase tracking-wider">Growth</th>
+<th class="pb-4 font-label-md text-secondary uppercase tracking-wider">Value</th>
+<th class="pb-4 font-label-md text-secondary uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="py-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">eco</span>
+</div>
+<span class="font-body-md font-semibold">Lumina Forest Ledger</span>
+</td>
+<td class="py-4">
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">Active</span>
+</td>
+<td class="py-4">
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="ml-1 font-body-md">+14.2%</span>
+</div>
+</td>
+<td class="py-4 font-body-md">$1,240,000</td>
+<td class="py-4 text-right">
+<button class="text-primary font-label-md hover:underline">Edit</button>
+</td>
+</tr>
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="py-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<span class="font-body-md font-semibold">Azure Basin Metrics</span>
+</td>
+<td class="py-4">
+<span class="px-3 py-1 rounded-full bg-secondary-container text-secondary text-xs font-bold uppercase">Pending</span>
+</td>
+<td class="py-4">
+<div class="flex items-center text-error">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<span class="ml-1 font-body-md">-2.4%</span>
+</div>
+</td>
+<td class="py-4 font-body-md">$840,200</td>
+<td class="py-4 text-right">
+<button class="text-primary font-label-md hover:underline">Edit</button>
+</td>
+</tr>
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="py-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+<span class="material-symbols-outlined">wb_sunny</span>
+</div>
+<span class="font-body-md font-semibold">Solar Canopy Audit</span>
+</td>
+<td class="py-4">
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase">Active</span>
+</td>
+<td class="py-4">
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="ml-1 font-body-md">+22.8%</span>
+</div>
+</td>
+<td class="py-4 font-body-md">$4,120,500</td>
+<td class="py-4 text-right">
+<button class="text-primary font-label-md hover:underline">Edit</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- ProList (Customized) -->
+<aside class="col-span-12 lg:col-span-4 glass-panel rounded-3xl p-card-padding flex flex-col">
+<div class="mb-6">
+<h3 class="font-headline-md text-on-surface">ProList</h3>
+<p class="text-body-md text-secondary">Simplified object visualization.</p>
+</div>
+<div class="space-y-4 flex-1">
+<div class="p-4 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-primary">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A professional headshot of a female executive in a bright, high-key office environment. She has a warm, confident expression, wearing a minimalist cream-colored blazer. The background is softly blurred with hints of green indoor plants, maintaining the brand's nature-integrated aesthetic. The lighting is diffused and natural, highlighting a clean and modern professional profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALVa3sMrieKo9OYZH4TkTp4wgvLsTSax81Z1Ml2oycI3vBB65NzguSscteY9trBbLGD2892o-nLLbSHFvlgmM4azi2oL97B5T5YH1JPcAOzsOe8x7aDco_Hr-_n1ETF64xw49zMUZck_t4VHiG3_QM2x9GTdqW07vmTu6i9Df6l5hWnTjDX_WXDjmodanYNMZEqODCZAXxs3r140jsFrRXKLvesLHJ6DErwm7y5mcmcc1oQkIL7QqGicTvgbIbYyzIDs4PCbwpJ8A"/>
+<div>
+<p class="font-semibold text-on-surface">Elena Vance</p>
+<p class="text-xs text-secondary">Lead Architect</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-secondary">more_vert</span>
+</div>
+<div class="p-4 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-tertiary">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A portrait of a male professional in a modern studio with soft, cool-toned lighting. He wears a dark charcoal turtleneck, exuding a creative and focused personality. The background features subtle light-refracting glass textures and a hint of lush green foliage in the distance. The overall mood is sophisticated, clean, and representative of a high-growth tech environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCclHEutuCl27hbkjMvAOM922JgfmogHYfasqS-ihbqFu1OnUh9ujHEB9S_c9ar5sEN8ACZJZuNQzyOja7BvKIfsLsFflGoPTYLBug5BWHe0rb6lR4IiPmSRROXU5e7TDeNnyx2BDQRBiYinTUsNNDkI3QAHk89w4d5grFMZVk8OhuJZPBxAO1Uow7KNDgOka689g_sjl9_qIko7UOCJWCQ7KRsUqhGJt3Ltheer_5p1wAP9iVQXaec3s92ZojfKJWeEMo_ALtOuWI"/>
+<div>
+<p class="font-semibold text-on-surface">Marcus Thorne</p>
+<p class="text-xs text-secondary">Systems Designer</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-secondary">more_vert</span>
+</div>
+<div class="p-4 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-primary-container">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A professional woman with a bright and friendly demeanor in a sunlit, glass-walled office space. She is dressed in a minimalist light green top that complements the brand's primary color palette. The setting is filled with airy, natural light, and the background contains artistic blur of a lush vertical garden. The visual style is crisp, high-end, and evokes a breath of fresh air." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvuA60EUbdNt3WT59uCB-LTu4o9JPIRCXexDSPxxIrMv5M4Ac9dxmElvvqH8bgkCYsqCQPLZmI2P-IWgnb75lX4SeyNFsXqlb5_YtCFnC20HUsgDmI_QpS9yJc-cFJGlpapeV_Z9pSaz3II0mWaaXVU8mRCF1KiT9-dla3QyGiIVvCffNQWNXS82QkxGvKOm1q3sBe51ZVyDRSRECKvw_Q7pZ45IlV7BGBPlaFOVETZOPdWIMY-0U61HE2BxXDhu2WyXQp3A3AYko"/>
+<div>
+<p class="font-semibold text-on-surface">Sarah Drasner</p>
+<p class="text-xs text-secondary">Operations Head</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-secondary">more_vert</span>
+</div>
+</div>
+<button class="w-full mt-6 py-3 rounded-xl border border-primary/30 text-primary font-label-md hover:bg-primary/5 transition-colors">
+                    View Team Directory
+                </button>
+</aside>
+<!-- EditableProTable & ProForm Showcase -->
+<section class="col-span-12 lg:col-span-7 glass-panel rounded-3xl p-card-padding">
+<div class="mb-8">
+<h3 class="font-headline-md text-on-surface">EditableProTable</h3>
+<p class="text-body-md text-secondary">In-place editing for high-velocity workflows.</p>
+</div>
+<div class="bg-white/10 rounded-2xl border border-white/10 overflow-hidden">
+<div class="grid grid-cols-4 p-4 border-b border-white/10 bg-white/5 font-label-md text-secondary">
+<div>Parameter</div>
+<div>Constraint</div>
+<div>Target</div>
+<div class="text-right">Action</div>
+</div>
+<div class="divide-y divide-white/5">
+<!-- Row 1 (Editing state) -->
+<div class="grid grid-cols-4 p-4 items-center">
+<div><input class="bg-white/20 border-b-2 border-primary focus:ring-0 text-sm rounded-lg p-2 w-full text-on-surface" type="text" value="Refresh Rate"/></div>
+<div>
+<select class="bg-white/20 border-0 focus:ring-0 text-sm rounded-lg p-2 w-full">
+<option>Less than</option>
+<option>Equal to</option>
+</select>
+</div>
+<div class="px-2 font-body-md text-on-surface">500ms</div>
+<div class="text-right flex justify-end gap-2">
+<span class="material-symbols-outlined text-primary cursor-pointer">check</span>
+<span class="material-symbols-outlined text-error cursor-pointer">close</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-4 p-4 items-center">
+<div class="font-body-md text-on-surface">Memory Buffer</div>
+<div class="font-body-md text-on-surface">Threshold</div>
+<div class="font-body-md text-on-surface">2.4 GB</div>
+<div class="text-right flex justify-end gap-2">
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors">edit</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-error transition-colors">delete</span>
+</div>
+</div>
+</div>
+<button class="w-full p-4 text-primary font-label-md flex items-center justify-center gap-2 hover:bg-white/10 transition-colors border-t border-white/5">
+<span class="material-symbols-outlined text-sm">add</span> Add New Entry
+                    </button>
+</div>
+</section>
+<!-- ProForm (Advanced Fields) -->
+<section class="col-span-12 lg:col-span-5 glass-panel rounded-3xl p-card-padding">
+<div class="mb-8">
+<h3 class="font-headline-md text-on-surface">ProForm</h3>
+<p class="text-body-md text-secondary">Step-based sophisticated data entry.</p>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="font-label-md text-secondary block uppercase tracking-tighter">Project Identity</label>
+<input class="w-full bg-white/10 border-0 border-b-2 border-white/20 focus:border-primary focus:ring-0 transition-all p-3 text-on-surface placeholder:text-secondary/50" placeholder="Enter project name..." type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-secondary block uppercase tracking-tighter">Date Range</label>
+<div class="relative">
+<input class="w-full bg-white/10 border-0 border-b-2 border-white/20 focus:border-primary focus:ring-0 transition-all p-3 text-on-surface" type="text" value="Oct 20 - Nov 20"/>
+<span class="material-symbols-outlined absolute right-3 top-3 text-secondary">calendar_today</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-secondary block uppercase tracking-tighter">Priority</label>
+<select class="w-full bg-white/10 border-0 border-b-2 border-white/20 focus:border-primary focus:ring-0 transition-all p-3 text-on-surface">
+<option>Level 0 (Critical)</option>
+<option>Level 1 (High)</option>
+<option>Level 2 (Normal)</option>
+</select>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-secondary block uppercase tracking-tighter">Tagging Strategy</label>
+<div class="flex flex-wrap gap-2">
+<span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">Ecology <span class="material-symbols-outlined text-xs">close</span></span>
+<span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">Growth <span class="material-symbols-outlined text-xs">close</span></span>
+<button class="border border-dashed border-white/30 text-secondary px-3 py-1 rounded-full text-sm hover:border-primary hover:text-primary transition-all">New Tag +</button>
+</div>
+</div>
+<div class="pt-4 flex gap-4">
+<button class="flex-1 py-3 bg-primary text-on-primary rounded-xl font-label-md shadow-lg active:scale-95 transition-transform">Submit Configuration</button>
+<button class="px-6 py-3 border border-white/20 text-secondary rounded-xl font-label-md hover:bg-white/10 active:scale-95 transition-transform">Reset</button>
+</div>
+</div>
+</section>
+<!-- ProDescriptions Showcase -->
+<section class="col-span-12 glass-panel rounded-3xl p-card-padding">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h3 class="font-headline-md text-on-surface">ProDescriptions</h3>
+<p class="text-body-md text-secondary">Structured read-only data layout.</p>
+</div>
+<span class="bg-primary/10 text-primary px-4 py-2 rounded-full font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span> System Verified
+                    </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-y-8 gap-x-12">
+<div class="space-y-1">
+<p class="font-label-md text-secondary uppercase tracking-wider">Deployment Instance</p>
+<p class="font-body-md text-on-surface font-semibold">Elevra-Lumina-Prod-01</p>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-secondary uppercase tracking-wider">Storage Region</p>
+<p class="font-body-md text-on-surface font-semibold">Northern Eucalyptus-4</p>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-secondary uppercase tracking-wider">API Key</p>
+<div class="flex items-center gap-2">
+<p class="font-body-md text-on-surface font-mono">sk_live_•••••••••129</p>
+<span class="material-symbols-outlined text-sm text-secondary cursor-pointer">visibility</span>
+</div>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-secondary uppercase tracking-wider">Encryption Type</p>
+<p class="font-body-md text-on-surface font-semibold">AES-256 GCM (Quantum Resistant)</p>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-secondary uppercase tracking-wider">Uptime SLA</p>
+<p class="font-body-md text-on-surface font-semibold">99.999% Guaranteed</p>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-secondary uppercase tracking-wider">Network Throughput</p>
+<div class="w-full bg-white/10 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-full rounded-full" style="width: 78%"></div>
+</div>
+<p class="text-xs text-secondary mt-1">7.8 GB/s of 10 GB/s peak</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Shell -->
+<footer class="flex justify-between items-center px-12 mt-12 w-full max-w-7xl mx-auto py-8 border-t border-white/10">
+<span class="font-body-md text-xs text-slate-400">© 2024 Elevra Lumina Design System</span>
+<div class="flex gap-8">
+<a class="font-body-md text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors" href="#">Changelog</a>
+<a class="font-body-md text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors" href="#">Github</a>
+<a class="font-body-md text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors" href="#">Discord</a>
+<a class="font-body-md text-xs text-slate-400 hover:text-green-500 hover:underline underline-offset-4 transition-colors" href="#">Support</a>
+</div>
+</footer>
+</main>
+<!-- Background Decoration -->
+<div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-tertiary-container/20 rounded-full blur-[100px]"></div>
+</div>
+</body></html>

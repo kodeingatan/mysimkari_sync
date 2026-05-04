@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#006e2f",
+                    "surface-container-highest": "#e0e3e5",
+                    "secondary-container": "#dfe0e0",
+                    "on-error": "#ffffff",
+                    "on-surface-variant": "#3d4a3d",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#e2e2e2",
+                    "outline-variant": "#bccbb9",
+                    "background": "#f7f9fb",
+                    "tertiary-fixed": "#b0f0d6",
+                    "tertiary-container": "#7ab8a0",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-container": "#004b1e",
+                    "secondary": "#5d5f5f",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#f2f4f6",
+                    "on-secondary-container": "#616363",
+                    "primary-container": "#22c55e",
+                    "on-surface": "#191c1e",
+                    "on-tertiary-fixed-variant": "#0b513d",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#6bff8f",
+                    "primary-fixed-dim": "#4ae176",
+                    "outline": "#6d7b6c",
+                    "on-secondary-fixed-variant": "#454747",
+                    "surface": "#f7f9fb",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "surface-container": "#eceef0",
+                    "surface-dim": "#d8dadc",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "primary": "#006e2f",
+                    "tertiary-fixed-dim": "#95d3ba",
+                    "on-tertiary-fixed": "#002117",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#005321",
+                    "on-background": "#191c1e",
+                    "on-tertiary-container": "#004937",
+                    "tertiary": "#2b6954",
+                    "inverse-primary": "#4ae176",
+                    "on-primary-fixed": "#002109"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-gap": "120px",
+                    "card-padding": "32px",
+                    "gutter": "24px",
+                    "unit": "8px",
+                    "margin-container": "64px"
+            },
+            "fontFamily": {
+                    "headline-xl": ["Manrope"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Manrope"],
+                    "body-lg": ["Inter"],
+                    "logo": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-xl": ["80px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "logo": ["24px", {"letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.glass-panel {
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    }
+.modal-glass {
+    backdrop-filter: blur(40px);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.1)
+    }
+.bg-nature {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuARKSkJXlzZTGFXRImSaq1fDf2rpzCxyBNdwzc6CkEcZcNlbBPjW0_4dFhAyuBiHRqbEep8TfUd5L0WZ-0iDhwN0ca-E4gBQzp0djAQbQwz7QEbXXRdDhOmFPKC5hWzurQULFlUaG52iUYe8zdURLL2VCAwIdCyoUmUKL-LUcIrCw-FUTzpZPtRhnRZLsNaY4zpL6sGRrNmQ1SWmSvNgRy7tSt0CAccGSQYGW6k-b6pCrswSXpwbK0W58JQMZZlf6AAtJinZZaukDw);
+    background-size: cover;
+    background-position: center
+    }</style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative overflow-hidden">
+<div class="fixed inset-0 bg-nature z-0">
+<div class="absolute inset-0 bg-white/40 backdrop-blur-3xl"></div>
+</div>
+<nav class="sticky top-4 z-50 flex items-center justify-between px-6 py-2 w-[90%] mx-auto bg-white/15 backdrop-blur-xl rounded-full border border-white/30 shadow-[0_0_20px_rgba(34,197,94,0.15)] font-manrope text-sm font-medium tracking-tight">
+<div class="flex items-center gap-2">
+<span class="text-xl font-bold tracking-tighter text-green-600">Elevra Lumina</span>
+</div>
+<div class="hidden md:flex items-center gap-1">
+<a class="bg-white text-green-600 px-4 py-1.5 rounded-full shadow-sm" href="#">Components</a>
+<a class="text-slate-700 px-4 py-1.5 hover:text-green-600 transition-colors" href="#">Feedback</a>
+<a class="text-slate-700 px-4 py-1.5 hover:text-green-600 transition-colors" href="#">Layout</a>
+<a class="text-slate-700 px-4 py-1.5 hover:text-green-600 transition-colors" href="#">Themes</a>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<input class="bg-white/30 border-none rounded-full px-4 py-1.5 text-sm focus:ring-2 focus:ring-green-500 w-48 transition-all" placeholder="Search..." type="text"/>
+</div>
+<button class="material-symbols-outlined text-slate-700 hover:text-green-600 transition-colors">notifications</button>
+<button class="material-symbols-outlined text-slate-700 hover:text-green-600 transition-colors">settings</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-white/50">
+<img alt="User profile" data-alt="A professional headshot of a person with a serene expression, set against a soft, high-key background with gentle green foliage hints. The lighting is diffused and natural, echoing the clean, light-mode aesthetic of the Elevra Lumina design system. The person is dressed in modern, minimalist attire that complements the sophisticated and technologically advanced brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBauIbw3yYi2EhinhP3VH5B_qS8hTfHtod5HMDXM9jNViYMzHutwaZ6Jty68vmL408LmjXTEoQfFGikoYqc8zjtoTV28HV9Yk7C6nY7D5SASXoxzqX974KzGHvHC-5x2pHb6V8fuCSXMadSgqFNwAMYyMRuJ340f_crj7oEAX0H9TVsW8aup9wC3B6Bu-zjIbNZZgNzma6Ixhm0HJ-H-wlTt_83X9bagWc6SCgqXp7J3-P0I4qn2HSANJDuzvk6RN_JwKrOOMm_1nk"/>
+</div>
+</div>
+</nav>
+<main class="relative z-10 max-w-7xl mx-auto px-margin-container mt-12">
+<header class="mb-12">
+<h1 class="font-headline-xl text-headline-xl text-primary-container mb-4">Design Library</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Explore our core interface patterns designed for clarity, growth, and digital precision.</p>
+</header>
+<div class="grid grid-cols-12 gap-gutter">
+<div class="col-span-8 glass-panel rounded-[32px] p-card-padding">
+<div class="flex justify-between items-center mb-8">
+<h2 class="font-headline-md text-headline-md text-on-surface">Interactive Elements</h2>
+<span class="font-label-md text-label-md bg-primary-container/10 text-primary-container px-3 py-1 rounded-full">v1.0.4</span>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div class="aspect-video rounded-2xl bg-white/20 border border-white/30 p-6 flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-primary-container mb-2">dashboard</span>
+<h3 class="font-headline-md text-lg text-on-surface">Dashboard</h3>
+</div>
+<div class="h-12 w-full bg-gradient-to-r from-primary-container/20 to-transparent rounded-lg"></div>
+</div>
+<div class="aspect-video rounded-2xl bg-white/20 border border-white/30 p-6 flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-primary-container mb-2">category</span>
+<h3 class="font-headline-md text-lg text-on-surface">Elements</h3>
+</div>
+<div class="flex gap-2">
+<div class="h-8 w-8 rounded-full bg-white/40"></div>
+<div class="h-8 w-8 rounded-full bg-white/40"></div>
+<div class="h-8 w-8 rounded-full bg-white/40"></div>
+</div>
+</div>
+</div>
+</div>
+<aside class="col-span-4 flex flex-col gap-gutter">
+<div class="glass-panel rounded-[32px] p-6 flex-1">
+<h3 class="font-label-md text-label-md text-primary mb-4">SYSTEM STATUS</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 bg-white/20 rounded-xl">
+<span class="text-sm font-medium">Global Patterns</span>
+<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
+</div>
+<div class="flex items-center justify-between p-3 bg-white/20 rounded-xl">
+<span class="text-sm font-medium">Feedback Loop</span>
+<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
+</div>
+</div>
+</div>
+<div class="bg-primary-container text-white rounded-[32px] p-6 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+<p class="font-label-md text-xs mb-2 opacity-80">NEXT MILESTONE</p>
+<h4 class="font-headline-md text-xl mb-4">Core Accessibility Update</h4>
+<button class="w-full bg-white text-green-600 font-bold py-3 rounded-2xl shadow-lg transition-transform active:scale-95">View Roadmap</button>
+</div>
+</aside>
+</div>
+</main>
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/5 backdrop-blur-md">
+<div class="modal-glass w-full max-w-2xl rounded-[32px] overflow-hidden">
+<div class="p-8">
+<div class="flex justify-between items-start mb-8">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-primary-container flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.2)]">
+<span class="material-symbols-outlined text-white text-2xl">add_task</span>
+</div>
+<div>
+<h2 class="font-headline-md text-2xl text-on-surface">Deploy New Component</h2>
+<p class="text-sm text-on-surface-variant font-body-md">Configure the deployment settings for the Lumina Modal.</p>
+</div>
+</div>
+<button class="material-symbols-outlined p-2 hover:bg-black/5 rounded-full transition-colors text-on-surface-variant">close</button>
+</div>
+<form class="space-y-6">
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary ml-1">COMPONENT NAME</label>
+<input class="w-full bg-white/40 border-b border-white/60 focus:border-primary-container focus:ring-0 transition-all rounded-lg px-4 py-3 placeholder:text-slate-400" placeholder="e.g. Glass Card" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary ml-1">PRIORITY LEVEL</label>
+<select class="w-full bg-white/40 border-b border-white/60 focus:border-primary-container focus:ring-0 transition-all rounded-lg px-4 py-3">
+<option>Level 1 (Core)</option>
+<option>Level 2 (Feature)</option>
+<option>Level 3 (Atom)</option>
+</select>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary ml-1">DEPLOYMENT TARGET</label>
+<div class="grid grid-cols-3 gap-4">
+<button class="p-4 border-2 border-primary-container bg-white/50 rounded-2xl flex flex-col items-center gap-2 shadow-sm" type="button">
+<span class="material-symbols-outlined text-primary-container">cloud_upload</span>
+<span class="text-xs font-bold">STAGING</span>
+</button>
+<button class="p-4 border border-white/60 bg-white/20 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/40 transition-all" type="button">
+<span class="material-symbols-outlined text-slate-500">verified</span>
+<span class="text-xs font-bold text-slate-500">PRODUCTION</span>
+</button>
+<button class="p-4 border border-white/60 bg-white/20 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/40 transition-all" type="button">
+<span class="material-symbols-outlined text-slate-500">code</span>
+<span class="text-xs font-bold text-slate-500">LOCAL</span>
+</button>
+</div>
+</div>
+<div class="bg-white/20 p-4 rounded-2xl border border-white/40 flex items-start gap-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">info</span>
+<p class="text-sm text-on-surface-variant font-body-md leading-relaxed">
+                            This action will create a new branch in the <strong>Elevra-Lumina-Design</strong> repository and initiate the automated visual regression tests.
+                        </p>
+</div>
+<div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-white/20">
+<button class="px-6 py-3 rounded-full font-label-md text-label-md text-slate-600 hover:bg-black/5 transition-colors" type="button">Cancel Action</button>
+<button class="px-8 py-3 bg-primary-container text-white rounded-full font-bold shadow-[0_10px_20px_rgba(34,197,94,0.3)] hover:scale-[1.02] transition-transform active:scale-95" type="submit">Initiate Deployment</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</body></html>

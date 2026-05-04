@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "surface-tint": "#006e2f",
+                  "surface-container-highest": "#e0e3e5",
+                  "secondary-container": "#dfe0e0",
+                  "on-error": "#ffffff",
+                  "on-surface-variant": "#3d4a3d",
+                  "on-secondary": "#ffffff",
+                  "surface-variant": "#e0e3e5",
+                  "inverse-on-surface": "#eff1f3",
+                  "error-container": "#ffdad6",
+                  "secondary-fixed-dim": "#c6c6c7",
+                  "error": "#ba1a1a",
+                  "secondary-fixed": "#e2e2e2",
+                  "outline-variant": "#bccbb9",
+                  "background": "#f7f9fb",
+                  "tertiary-fixed": "#b0f0d6",
+                  "tertiary-container": "#7ab8a0",
+                  "surface-bright": "#f7f9fb",
+                  "on-primary-container": "#004b1e",
+                  "secondary": "#5d5f5f",
+                  "on-primary": "#ffffff",
+                  "surface-container-low": "#f2f4f6",
+                  "on-secondary-container": "#616363",
+                  "primary-container": "#22c55e",
+                  "on-surface": "#191c1e",
+                  "on-tertiary-fixed-variant": "#0b513d",
+                  "on-error-container": "#93000a",
+                  "primary-fixed": "#6bff8f",
+                  "primary-fixed-dim": "#4ae176",
+                  "outline": "#6d7b6c",
+                  "on-secondary-fixed-variant": "#454747",
+                  "surface": "#f7f9fb",
+                  "on-secondary-fixed": "#1a1c1c",
+                  "surface-container": "#eceef0",
+                  "surface-dim": "#d8dadc",
+                  "surface-container-high": "#e6e8ea",
+                  "on-tertiary": "#ffffff",
+                  "inverse-surface": "#2d3133",
+                  "primary": "#006e2f",
+                  "tertiary-fixed-dim": "#95d3ba",
+                  "on-tertiary-fixed": "#002117",
+                  "surface-container-lowest": "#ffffff",
+                  "on-primary-fixed-variant": "#005321",
+                  "on-background": "#191c1e",
+                  "on-tertiary-container": "#004937",
+                  "tertiary": "#2b6954",
+                  "inverse-primary": "#4ae176",
+                  "on-primary-fixed": "#002109"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "section-gap": "120px",
+                  "card-padding": "32px",
+                  "gutter": "24px",
+                  "unit": "8px",
+                  "margin-container": "64px"
+          },
+          "fontFamily": {
+                  "headline-xl": ["Manrope"],
+                  "label-md": ["Inter"],
+                  "headline-lg": ["Manrope"],
+                  "body-lg": ["Inter"],
+                  "logo": ["Manrope"],
+                  "body-md": ["Inter"],
+                  "headline-md": ["Manrope"]
+          },
+          "fontSize": {
+                  "headline-xl": ["80px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                  "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                  "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                  "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                  "logo": ["24px", {"letterSpacing": "-0.04em", "fontWeight": "700"}],
+                  "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                  "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>body {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBs0zqaImlY2YweyKrBkLxsN1vVZ-VQUZTAIUMeHU3571Li0BdUVsgMfjLWmdH9ohhKmBuSgtkk-AP0ycN93ADhh_dLiW9cl027M4_q2I0TLecArKHkFT3vxsS6biR_i30OGasdS1_iJiCaHB72FZzQT3SOsPQgVTiWCKhxqncY69fVWZ65GlbfVrvXuYBYV8MHN3cE_YA1SuCT8kPb5ie4eYkGRojZyoO_MasMJ5rgYjBcC3PXaK6rhJ9vMtHBIdCBYBsR5ANZCHM);
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center
+    }
+.glass-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255, 255, 255, 0.3)
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }</style>
+</head>
+<body class="min-h-screen text-on-surface font-body-md overflow-hidden">
+<nav class="sticky top-4 z-50 flex items-center justify-between px-6 py-2 w-[90%] mx-auto bg-white/15 backdrop-blur-xl rounded-full border border-white/30 shadow-[0_0_20px_rgba(34,197,94,0.15)] font-manrope text-sm font-medium tracking-tight">
+<div class="flex items-center gap-2">
+<span class="text-xl font-bold tracking-tighter text-green-600">Elevra Lumina</span>
+</div>
+<div class="hidden md:flex items-center gap-1">
+<a class="bg-white text-green-600 px-4 py-1.5 rounded-full shadow-sm" href="#">Components</a>
+<a class="text-slate-700 px-4 py-1.5 hover:text-green-600 transition-colors" href="#">Feedback</a>
+<a class="text-slate-700 px-4 py-1.5 hover:text-green-600 transition-colors" href="#">Layout</a>
+<a class="text-slate-700 px-4 py-1.5 hover:text-green-600 transition-colors" href="#">Themes</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-700 hover:bg-white/40 p-2 rounded-full transition-all" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-slate-700 hover:bg-white/40 p-2 rounded-full transition-all" data-icon="settings">settings</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-white/40">
+<img alt="User profile" data-alt="A professional headshot of a person with a serene expression, set against a softly blurred botanical background with dappled sunlight. The lighting is high-key and natural, emphasizing a clean and airy aesthetic that aligns with a premium light-mode UI design. The overall mood is sophisticated and approachable, featuring a fresh and modern visual style consistent with high-end technology brands." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwObtrf6JM4__Dtq0RNoW4xtyFP7u3J3-dJgKUtdo3XRo6z-havVOmLpLSjNmGW1P3TPPTHxl0CereqVhViI3akoCSYWyG8R4NszT2CHjNipLDiHdGSlwtsmRzTVdATu6eVCqdjtkBHpcUjI7yLyJJzu6qpF6HajMrI0fCevtrUuxTUKtfFHMqCA_-SVtoALdRZSKTUNDZlujXxypNWjhNGBbPuZmb8GcI9tQJaPMMv9wNQQc5lmey-hQEdmjr-GiKDp9qEQzcWBE"/>
+</div>
+</div>
+</nav>
+<main class="relative h-screen w-full flex items-center justify-center p-margin-container">
+<div class="w-full max-w-7xl h-[819px] glass-panel rounded-3xl p-card-padding relative overflow-hidden flex flex-col gap-gutter">
+<div class="flex justify-between items-start">
+<header>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Drawer Components</h1>
+<p class="text-on-surface-variant max-w-lg">Explore our highly customizable, translucent drawer system designed for deep navigational structures and contextual configuration panels.</p>
+</header>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter flex-grow">
+<div class="glass-card rounded-xl p-6 flex flex-col gap-4">
+<div class="w-12 h-12 bg-primary-container/20 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="side_navigation">side_navigation</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-surface">Layout Patterns</h3>
+<p class="text-body-md text-on-surface-variant">Choose between standard push, overlay, or floating glass effects for your side drawer implementations.</p>
+</div>
+<div class="glass-card rounded-xl p-6 flex flex-col gap-4 border-primary/30 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+<div class="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="blur_on">blur_on</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-surface">Frosted Surfaces</h3>
+<p class="text-body-md text-on-surface-variant">Signature backdrop filters with subtle white borders create the perfect sense of depth and hierarchy.</p>
+</div>
+<div class="glass-card rounded-xl p-6 flex flex-col gap-4">
+<div class="w-12 h-12 bg-primary-container/20 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="touch_app">touch_app</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-surface">Interactive States</h3>
+<p class="text-body-md text-on-surface-variant">Pill-shaped active indicators with high-contrast text ensure clear user orientation within complex flows.</p>
+</div>
+</div>
+<div class="mt-auto flex gap-4">
+<button class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all">Preview All</button>
+<button class="border border-white/40 text-on-surface px-8 py-3 rounded-full hover:bg-white/10 transition-all">Documentation</button>
+</div>
+</div>
+<div class="fixed inset-0 bg-slate-900/10 backdrop-blur-sm z-[60]">
+<div class="absolute inset-y-8 right-8 w-96 glass-card rounded-3xl shadow-2xl flex flex-col overflow-hidden border-white/50">
+<div class="p-8 border-b border-white/20 flex items-center justify-between">
+<div>
+<h2 class="font-headline-md text-2xl text-slate-900">System Config</h2>
+<p class="text-sm text-slate-500">v1.0.4 • Management</p>
+</div>
+<button class="material-symbols-outlined text-slate-400 hover:text-slate-900 transition-colors" data-icon="close">close</button>
+</div>
+<div class="flex-grow overflow-y-auto p-4 space-y-2">
+<p class="px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-slate-400">Navigation</p>
+<a class="flex items-center gap-4 px-4 py-3 text-green-600 font-bold border-r-4 border-green-500 bg-green-50/20 rounded-l-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-manrope">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-green-500 hover:bg-white/10 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-manrope">Elements</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-green-500 hover:bg-white/10 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="add_alert">add_alert</span>
+<span class="font-manrope">Feedback</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-green-500 hover:bg-white/10 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-manrope">Patterns</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-green-500 hover:bg-white/10 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-manrope">System</span>
+</a>
+<div class="pt-8 space-y-4">
+<p class="px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-slate-400">Appearance</p>
+<div class="px-4">
+<div class="glass-panel p-4 rounded-2xl space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-slate-700">Frosted Glass</span>
+<div class="w-10 h-5 bg-green-500 rounded-full relative">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-slate-700">Dark Mode</span>
+<div class="w-10 h-5 bg-slate-300 rounded-full relative">
+<div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 mt-auto border-t border-white/20">
+<button class="w-full bg-primary text-white py-3 rounded-full font-bold shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+            New Component
+          </button>
+<div class="flex justify-around mt-6 text-slate-400">
+<button class="flex flex-col items-center gap-1 hover:text-green-500 transition-colors">
+<span class="material-symbols-outlined text-xl" data-icon="description">description</span>
+<span class="text-[10px] font-bold">Docs</span>
+</button>
+<button class="flex flex-col items-center gap-1 hover:text-green-500 transition-colors">
+<span class="material-symbols-outlined text-xl" data-icon="help">help</span>
+<span class="text-[10px] font-bold">Support</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-gutter z-40 md:hidden">
+<div class="glass-panel rounded-full px-8 py-3 flex items-center justify-between shadow-2xl">
+<button class="flex flex-col items-center text-green-600 transition-all">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</button>
+<button class="flex flex-col items-center text-slate-400 hover:text-slate-600 transition-all">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+</button>
+<div class="w-12 h-12 bg-primary rounded-full -mt-10 border-4 border-white flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</div>
+<button class="flex flex-col items-center text-slate-400 hover:text-slate-600 transition-all">
+<span class="material-symbols-outlined" data-icon="add_alert">add_alert</span>
+</button>
+<button class="flex flex-col items-center text-slate-400 hover:text-slate-600 transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</footer>
+</body></html>
