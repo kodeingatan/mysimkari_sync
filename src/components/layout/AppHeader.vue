@@ -1,5 +1,5 @@
 <template>
-  <header class="h-14 bg-surface border-b border-gray-200 flex items-center px-6 shadow-sm z-10 justify-between">
+  <header style="-webkit-app-region: drag;" class="h-14 bg-surface border-b border-gray-200 flex items-center px-6 pr-[140px] shadow-sm z-10 justify-between">
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded bg-primary text-white flex items-center justify-center font-bold text-lg">M</div>
       <h1 class="text-xl font-semibold tracking-tight">MySimkari Sync</h1>
@@ -11,6 +11,7 @@
       <button 
         v-if="!isLoggedIn"
         @click="$emit('login')"
+        style="-webkit-app-region: no-drag;"
         class="px-4 py-1.5 bg-primary hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
       >
         Login

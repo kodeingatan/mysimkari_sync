@@ -81,9 +81,13 @@ const formData = ref({
   date: ''
 })
 
-// Mock initial data - remove
-onMounted(() => {
-  // We don't load mock data anymore
+// Initialize session check
+onMounted(async () => {
+  // @ts-ignore
+  if (window.ipcRenderer) {
+    // @ts-ignore
+    isLoggedIn.value = await window.ipcRenderer.invoke('check-session')
+  }
 })
 
 const selectFolder = async () => {
