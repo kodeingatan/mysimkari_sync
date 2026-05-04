@@ -204,6 +204,62 @@ ipcMain.handle('logout-mysimkari', async () => {
   return true
 })
 
+ipcMain.handle('get-form-options', async () => {
+  const sessionRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('session') as any
+  const userRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('uniqueuserid') as any
+  
+  if (!sessionRow || !userRow) return null
+
+  const cookies = JSON.parse(sessionRow.value)
+  const cookieString = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ')
+
+  try {
+    const response = await fetch(`https://mysimkari.kejaksaan.go.id/dashboard-utama/pegawai/${userRow.value}`, {
+      headers: { 'Cookie': cookieString }
+    })
+    const html = await response.text()
+
+    const extractOptions = (id: string) => {
+      const selectMatch = html.match(new RegExp(`<select[^>]*id="${id}"[^>]*>([\\s\\S]*?)<\\/select>`))
+      if (!selectMatch) return []
+      
+      const options = []
+      const optionRegex = /<option[^>]*value="([^"]*)"(?:[^>]*data-kegiatan-saya="([^"]*)")?[^>]*>([\s\S]*?)<\/option>/g
+      let match
+      while ((match = optionRegex.exec(selectMatch[1])) !== null) {
+        if (match[1]) { // ignore empty value (placeholder)
+          options.push({
+            value: match[1],
+            label: match[3].trim(),
+            sasaran: match[2] || ''
+          })
+        }
+      }
+      return options
+    }
+
+    return {
+      tipe: extractOptions('tipekegiatan'),
+      kategori: extractOptions('kaitan_kegiatan'),
+      indikator: extractOptions('indikatorkinerja')
+    }
+  } catch (error) {
+    console.error('Error crawling form options:', error)
+    return null
+  }
+})
+
+ipcMain.handle('get-file-stats', async (_event, path: string) => {
+  try {
+    const stats = fs.statSync(path)
+    return {
+      mtime: stats.mtime.toISOString().split('T')[0]
+    }
+  } catch (error) {
+    return null
+  }
+})
+
 ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
   const sessionRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('session') as any
   if (!sessionRow) return false
@@ -227,16 +283,16 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
 
     const payload = new FormData()
     payload.append('_token', csrfToken)
-    payload.append('tipe_kegiatan', '2')
-    payload.append('kaitan_kegiatan', 'administrasi')
-    payload.append('id_indikator', '192843')
-    payload.append('sasaran_kegiatan', 'Melaksanakan penyusunan administrasi atau pelaksanaan kegiatan dalam rangka menindaklanjuti sesuai arahan pimpinan')
+    payload.append('tipe_kegiatan', formData.tipe_kegiatan)
+    payload.append('kaitan_kegiatan', formData.kaitan_kegiatan)
+    payload.append('id_indikator', formData.id_indikator)
+    payload.append('sasaran_kegiatan', formData.sasaran_kegiatan)
     payload.append('nama_kegiatan', formData.name)
     payload.append('desc_kegiatan', formData.description)
     payload.append('tanggal_kegiatan', formData.date)
-    payload.append('menit', '420')
+    payload.append('menit', formData.menit?.toString() || '420')
     payload.append('file', fileBlob, fileName)
-    payload.append('nip', '199810232022031012') // From example request
+    payload.append('nip', '199810232022031012') // Tetap gunakan NIP contoh jika tidak ada di session
 
     // 3. Send POST Request
     const response = await fetch('https://mysimkari.kejaksaan.go.id/ekinerja/simpankinerja/indikator/new', {
