@@ -16,6 +16,14 @@
       >
         Login
       </button>
+      <button 
+        v-else
+        @click="$emit('logout')"
+        style="-webkit-app-region: no-drag;"
+        class="px-4 py-1.5 bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-600 border border-gray-200 hover:border-red-200 rounded-md text-sm font-medium transition-colors"
+      >
+        Logout
+      </button>
     </div>
   </header>
 </template>
@@ -27,5 +35,6 @@ defineProps<{
 
 defineEmits<{
   (e: 'login'): void
+  (e: 'logout'): void
 }>()
 </script>

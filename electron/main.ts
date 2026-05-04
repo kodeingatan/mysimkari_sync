@@ -197,6 +197,13 @@ ipcMain.handle('login-mysimkari', async () => {
   })
 })
 
+ipcMain.handle('logout-mysimkari', async () => {
+  db?.prepare('DELETE FROM settings WHERE key = ?').run('session')
+  db?.prepare('DELETE FROM settings WHERE key = ?').run('uniqueuserid')
+  await session.fromPartition('persist:mysimkari').clearStorageData()
+  return true
+})
+
 ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
   const sessionRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('session') as any
   if (!sessionRow) return false

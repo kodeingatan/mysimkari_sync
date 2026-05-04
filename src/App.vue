@@ -1,6 +1,6 @@
 <template>
   <div class="h-screen w-screen flex flex-col bg-background text-gray-800">
-    <AppHeader :isLoggedIn="isLoggedIn" @login="login" />
+    <AppHeader :isLoggedIn="isLoggedIn" @login="login" @logout="logout" />
 
     <div class="flex flex-1 overflow-hidden">
       <!-- Sidebar / Tree View -->
@@ -142,6 +142,17 @@ const login = async () => {
   } else {
     alert("Login flow will open an external browser window in Electron app")
     isLoggedIn.value = true
+  }
+}
+
+const logout = async () => {
+  // @ts-ignore
+  if (window.ipcRenderer) {
+    // @ts-ignore
+    await window.ipcRenderer.invoke('logout-mysimkari')
+    isLoggedIn.value = false
+  } else {
+    isLoggedIn.value = false
   }
 }
 
