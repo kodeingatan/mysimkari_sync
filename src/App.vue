@@ -4,7 +4,10 @@
 
     <div class="flex flex-1 overflow-hidden">
       <!-- Sidebar / Tree View -->
-      <AppSidebar :files="files" :selectedFile="selectedFile" @select-folder="selectFolder" @select-file="selectFile" />
+      <AppSidebar :files="files" :selectedFile="selectedFile" 
+        @select-folder="selectFolder" 
+        @select-file="selectFile"
+        @refresh="refreshFolder" />
 
       <!-- Main Content -->
       <main class="flex-1 bg-gray-50 flex flex-col p-8 overflow-y-auto">
@@ -108,6 +111,7 @@ import SearchSelectItem from './components/ui/SearchSelectItem.vue'
 
 // State
 const files = ref<TreeNode[]>([])
+const currentFolderPath = ref<string | null>(null)
 const selectedFile = ref<TreeNode | null>(null)
 const isLoggedIn = ref(false)
 const isSyncing = ref(false)
@@ -158,11 +162,40 @@ const selectFolder = async () => {
     // @ts-ignore
     const result = await window.ipcRenderer.invoke('select-folder')
     if (result) {
-      files.value = result
+      files.value = result.fileTree
+      currentFolderPath.value = result.folderPath
       selectedFile.value = null
     }
   } else {
     alert("Folder selection will be available in Electron app")
+  }
+}
+
+const refreshFolder = async () => {
+  if (!currentFolderPath.value) return
+
+  // @ts-ignore
+  if (window.ipcRenderer) {
+    // @ts-ignore
+    const result = await window.ipcRenderer.invoke('read-folder', currentFolderPath.value)
+    if (result) {
+      files.value = result
+      // Keep selection if possible
+      if (selectedFile.value) {
+        const findInTree = (tree: TreeNode[]): TreeNode | null => {
+          for (const node of tree) {
+            if (node.path === selectedFile.value?.path) return node
+            if (node.children) {
+              const found = findInTree(node.children)
+              if (found) return found
+            }
+          }
+          return null
+        }
+        const updated = findInTree(files.value)
+        if (updated) selectedFile.value = updated
+      }
+    }
   }
 }
 

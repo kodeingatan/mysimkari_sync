@@ -2,10 +2,16 @@
   <aside class="w-72 bg-surface border-r border-gray-200 flex flex-col">
     <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
       <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wider">Explorer</h2>
-      <button @click="$emit('select-folder')"
-        class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="Select Folder">
-        <IoOutlineAddCircle class="text-xl" />
-      </button>
+      <div class="flex items-center gap-1">
+        <button @click="$emit('refresh')"
+          class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="Refresh">
+          <IoOutlineRefresh class="text-lg" />
+        </button>
+        <button @click="$emit('select-folder')"
+          class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="Select Folder">
+          <IoOutlineAddCircle class="text-xl" />
+        </button>
+      </div>
     </div>
     <div class="flex-1 overflow-y-auto p-2">
       <div v-if="files.length === 0" class="text-center text-sm text-gray-400 mt-10">
@@ -35,7 +41,8 @@ import {
   IoOutlineSearch,
   IoOutlineFolderOpen,
   IoOutlineResize,
-  IoOutlineDocumentText
+  IoOutlineDocumentText,
+  IoOutlineRefresh
 } from '@kalimahapps/vue-icons'
 import AppSidebarNode from './AppSidebarNode.vue'
 import ContextMenu, { MenuItem } from '../ui/ContextMenu.vue'
@@ -62,6 +69,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'select-folder'): void
   (e: 'select-file', file: TreeNode): void
+  (e: 'refresh'): void
 }>()
 
 // Context Menu State
@@ -122,9 +130,15 @@ const getMenuItems = (node: TreeNode, apps: string[] = []): MenuItem[] => {
       items.push({
         label: 'Compress PDF',
         icon: h(IoOutlineResize),
-        action: () => {
+        action: async () => {
           // @ts-ignore
-          window.ipcRenderer.invoke('compress-pdf', node.path)
+          const success = await window.ipcRenderer.invoke('compress-pdf', node.path)
+          if (success) {
+            alert('PDF compressed successfully!')
+            emit('refresh')
+          } else {
+            alert('Failed to compress PDF.')
+          }
         }
       })
     } else if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(node.fileType || '')) {
@@ -132,9 +146,15 @@ const getMenuItems = (node: TreeNode, apps: string[] = []): MenuItem[] => {
       items.push({
         label: 'Convert to PDF',
         icon: h(IoOutlineDocumentText),
-        action: () => {
+        action: async () => {
           // @ts-ignore
-          window.ipcRenderer.invoke('convert-to-pdf', node.path)
+          const success = await window.ipcRenderer.invoke('convert-to-pdf', node.path)
+          if (success) {
+            alert('Converted to PDF successfully!')
+            emit('refresh')
+          } else {
+            alert('Failed to convert to PDF. Make sure Microsoft Office is installed.')
+          }
         }
       })
     }

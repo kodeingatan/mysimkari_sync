@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, session, shell } from 'electron'
-import { join } from 'path'
+import { join, dirname, basename, extname } from 'path'
 import * as fs from 'fs'
 import { exec } from 'child_process'
 import Database from 'better-sqlite3'
@@ -88,58 +88,62 @@ ipcMain.handle('select-folder', async () => {
   if (result.canceled) return null
   
   const folderPath = result.filePaths[0]
+  const fileTree = readDirRecursive(folderPath)
+  return { folderPath, fileTree }
+})
+
+ipcMain.handle('read-folder', async (_event, folderPath: string) => {
+  if (!fs.existsSync(folderPath)) return null
+  return readDirRecursive(folderPath)
+})
+
+function readDirRecursive(dirPath: string): any[] {
+  const items: any[] = []
+  const files = fs.readdirSync(dirPath, { withFileTypes: true })
   
-  function readDirRecursive(dirPath: string): any[] {
-    const items: any[] = []
-    const files = fs.readdirSync(dirPath, { withFileTypes: true })
-    
-    for (const f of files) {
-      const fullPath = join(dirPath, f.name)
-      if (f.isDirectory()) {
-        const children = readDirRecursive(fullPath)
-        if (children.length > 0) {
-          items.push({
-            name: f.name,
-            path: fullPath,
-            type: 'folder',
-            children
-          })
-        }
-      } else if (f.isFile() && f.name.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i)) {
-        const ext = f.name.split('.').pop()?.toLowerCase() || ''
-        const existing = db?.prepare('SELECT * FROM documents WHERE path = ?').get(fullPath) as any
-        
-        if (!existing) {
-          db?.prepare('INSERT INTO documents (path, name, type, status) VALUES (?, ?, ?, ?)').run(fullPath, f.name, ext, 'unprocessed')
-          items.push({
-            name: f.name,
-            path: fullPath,
-            type: 'file',
-            fileType: ext,
-            status: 'unprocessed'
-          })
-        } else {
-          items.push({
-            name: existing.name,
-            path: existing.path,
-            type: 'file',
-            fileType: existing.type,
-            status: existing.status,
-            parsedData: existing.parsed_name ? {
-              name: existing.parsed_name,
-              description: existing.parsed_desc,
-              date: existing.parsed_date
-            } : undefined
-          })
-        }
+  for (const f of files) {
+    const fullPath = join(dirPath, f.name)
+    if (f.isDirectory()) {
+      const children = readDirRecursive(fullPath)
+      if (children.length > 0) {
+        items.push({
+          name: f.name,
+          path: fullPath,
+          type: 'folder',
+          children
+        })
+      }
+    } else if (f.isFile() && f.name.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i)) {
+      const ext = extname(fullPath).toLowerCase().replace('.', '')
+      const existing = db?.prepare('SELECT * FROM documents WHERE path = ?').get(fullPath) as any
+      
+      if (!existing) {
+        db?.prepare('INSERT INTO documents (path, name, type, status) VALUES (?, ?, ?, ?)').run(fullPath, f.name, ext, 'unprocessed')
+        items.push({
+          name: f.name,
+          path: fullPath,
+          type: 'file',
+          fileType: ext,
+          status: 'unprocessed'
+        })
+      } else {
+        items.push({
+          name: existing.name,
+          path: existing.path,
+          type: 'file',
+          fileType: existing.type,
+          status: existing.status,
+          parsedData: existing.parsed_name ? {
+            name: existing.parsed_name,
+            description: existing.parsed_desc,
+            date: existing.parsed_date
+          } : undefined
+        })
       }
     }
-    return items
   }
-
-  const fileTree = readDirRecursive(folderPath)
-  return fileTree
-})
+  return items
+}
 
 ipcMain.handle('parse-file', async (_event, path: string, type: string) => {
   const parsedData = await parseDocument(path, type)
