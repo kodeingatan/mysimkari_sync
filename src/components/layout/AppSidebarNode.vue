@@ -5,6 +5,7 @@
       <div 
         class="px-3 py-1.5 rounded-md cursor-pointer text-sm flex items-center gap-2 hover:bg-gray-100 transition-colors text-gray-700 font-medium"
         @click="isOpen = !isOpen"
+        @contextmenu.prevent.stop="$emit('context-menu', { node, x: $event.clientX, y: $event.clientY })"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-transform" :class="{'rotate-90': isOpen}">
           <polyline points="9 18 15 12 9 6"></polyline>
@@ -20,6 +21,7 @@
           :node="child"
           :selectedFile="selectedFile"
           @select-file="$emit('select-file', $event)"
+          @context-menu="$emit('context-menu', $event)"
         />
       </ul>
     </div>
@@ -28,7 +30,8 @@
     <div v-else
          class="px-3 py-1.5 rounded-md cursor-pointer text-sm flex items-center gap-2 transition-colors ml-1"
          :class="selectedFile?.path === node.path ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-100 text-gray-600'"
-         @click="$emit('select-file', node)">
+         @click="$emit('select-file', node)"
+         @contextmenu.prevent.stop="$emit('context-menu', { node, x: $event.clientX, y: $event.clientY })">
       
       <FileIcon :type="node.fileType" />
       <span class="truncate flex-1">{{ node.name }}</span>
@@ -50,6 +53,7 @@ defineProps<{
 
 defineEmits<{
   (e: 'select-file', file: any): void
+  (e: 'context-menu', payload: { node: TreeNode, x: number, y: number }): void
 }>()
 
 const isOpen = ref(false)

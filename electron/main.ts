@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain, dialog, session } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, session, shell } from 'electron'
 import { join } from 'path'
 import * as fs from 'fs'
+import { exec } from 'child_process'
 import Database from 'better-sqlite3'
 import { parseDocument } from './parser'
 
@@ -322,4 +323,79 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
     console.error('Sync error:', error)
     return false
   }
+})
+
+ipcMain.handle('open-file', async (_event, path: string) => {
+  return await shell.openPath(path)
+})
+
+ipcMain.handle('open-with-dialog', async (_event, path: string) => {
+  const openWithPath = join(process.env.SystemRoot || 'C:\\Windows', 'System32\\OpenWith.exe')
+  exec(`"${openWithPath}" "${path}"`)
+})
+
+ipcMain.handle('show-item-in-folder', async (_event, path: string) => {
+  shell.showItemInFolder(path)
+})
+
+ipcMain.handle('get-associated-apps', async (_event, ext: string) => {
+  if (process.platform !== 'win32') return []
+  
+  const cleanExt = ext.startsWith('.') ? ext : `.${ext}`
+  
+  return new Promise((resolve) => {
+    const script = `
+      $ext = "${cleanExt}";
+      $apps = @();
+      $regPaths = @(
+        "Registry::HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\$ext\\OpenWithList",
+        "Registry::HKEY_CLASSES_ROOT\\$ext\\OpenWithList",
+        "Registry::HKEY_CLASSES_ROOT\\SystemFileAssociations\\$ext\\OpenWithList"
+      );
+      foreach ($rp in $regPaths) {
+        if (Test-Path $rp) {
+          $list = Get-ItemProperty -Path $rp -ErrorAction SilentlyContinue;
+          if ($list) {
+            foreach ($p in $list.PSObject.Properties) {
+              if ($p.Name -match "^[a-z0-9]$") {
+                $val = $p.Value;
+                if ($val -and $val -notmatch "^[a-z]{8}$" -and $val -ne "MRUList") { 
+                  $apps += $val
+                }
+              }
+            }
+          }
+        }
+      }
+      # Fallback for common types if list is short
+      if ($apps.Count -lt 2) {
+        if ($ext -eq ".pdf") { $apps += @("msedge.exe", "chrome.exe", "AcroRd32.exe") }
+        elseif ($ext -match "\\.doc|\\.docx") { $apps += @("Winword.exe", "write.exe") }
+        elseif ($ext -match "\\.xls|\\.xlsx") { $apps += @("Excel.exe") }
+        elseif ($ext -match "\\.ppt|\\.pptx") { $apps += @("Powerpnt.exe") }
+      }
+      $apps | Select-Object -Unique | Where-Object { $_ -match "\\.exe$" } | ConvertTo-Json
+    `;
+    
+    exec(`powershell -Command "${script.replace(/\n/g, ' ')}"`, (error, stdout) => {
+      if (error || !stdout) {
+        // Last resort fallback if PS fails
+        const fallback = [];
+        if (cleanExt === ".pdf") fallback.push("msedge.exe", "chrome.exe");
+        resolve(fallback);
+        return;
+      }
+      try {
+        const result = JSON.parse(stdout)
+        const appsArray = Array.isArray(result) ? result : [result]
+        resolve(appsArray.filter(Boolean))
+      } catch {
+        resolve([])
+      }
+    })
+  })
+})
+
+ipcMain.handle('open-with-app', async (_event, path: string, app: string) => {
+  exec(`start "" "${app}" "${path}"`)
 })
