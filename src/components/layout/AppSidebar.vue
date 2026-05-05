@@ -33,7 +33,9 @@ import {
   IoOutlineRocket,
   IoOutlineFlash,
   IoOutlineSearch,
-  IoOutlineFolderOpen
+  IoOutlineFolderOpen,
+  IoOutlineResize,
+  IoOutlineDocumentText
 } from '@kalimahapps/vue-icons'
 import AppSidebarNode from './AppSidebarNode.vue'
 import ContextMenu, { MenuItem } from '../ui/ContextMenu.vue'
@@ -112,6 +114,30 @@ const getMenuItems = (node: TreeNode, apps: string[] = []): MenuItem[] => {
         }
       ]
     })
+
+    items.push({ type: 'divider' as const })
+
+    // PDF specific actions
+    if (node.fileType === 'pdf') {
+      items.push({
+        label: 'Compress PDF',
+        icon: h(IoOutlineResize),
+        action: () => {
+          // @ts-ignore
+          window.ipcRenderer.invoke('compress-pdf', node.path)
+        }
+      })
+    } else if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(node.fileType || '')) {
+      // Office to PDF conversion
+      items.push({
+        label: 'Convert to PDF',
+        icon: h(IoOutlineDocumentText),
+        action: () => {
+          // @ts-ignore
+          window.ipcRenderer.invoke('convert-to-pdf', node.path)
+        }
+      })
+    }
 
     items.push({ type: 'divider' as const })
   }

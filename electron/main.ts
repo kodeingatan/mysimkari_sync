@@ -399,3 +399,122 @@ ipcMain.handle('get-associated-apps', async (_event, ext: string) => {
 ipcMain.handle('open-with-app', async (_event, path: string, app: string) => {
   exec(`start "" "${app}" "${path}"`)
 })
+
+ipcMain.handle('compress-pdf', async (_event, filePath: string) => {
+  const dir = filePath.substring(0, filePath.lastIndexOf('\\'))
+  const ext = filePath.split('.').pop()
+  const name = filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))
+  const outPath = join(dir, `${name}_compress.${ext}`)
+
+  const scriptPath = join(app.getPath('temp'), `compress_${Date.now()}.ps1`)
+  const script = `
+    try {
+      $word = New-Object -ComObject Word.Application
+      if ($null -eq $word) { throw "Could not create Word object" }
+      $word.Visible = $false
+      $doc = $word.Documents.Open("${filePath.replace(/"/g, '`"')}", $false, $true)
+      if ($null -eq $doc) { throw "Could not open document" }
+      $doc.ExportAsFixedFormat("${outPath.replace(/"/g, '`"')}", 17, $false, 1)
+      $doc.Close(0)
+      $word.Quit()
+      Write-Output "success"
+    } catch {
+      Write-Output "Error: $($_.Exception.Message)"
+      if ($word) { $word.Quit() }
+    }
+  `
+  
+  fs.writeFileSync(scriptPath, script, 'utf8')
+
+  return new Promise((resolve) => {
+    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
+      fs.unlinkSync(scriptPath) // Clean up
+      if (err || !stdout.includes("success")) {
+        console.error("Compression failed:", stdout)
+        resolve(false)
+      } else {
+        resolve(true)
+      }
+    })
+  })
+})
+
+ipcMain.handle('convert-to-pdf', async (_event, filePath: string) => {
+  const dir = filePath.substring(0, filePath.lastIndexOf('\\'))
+  const name = filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))
+  const ext = filePath.split('.').pop()?.toLowerCase()
+  const outPath = join(dir, `${name}_outpdf.pdf`)
+
+  let script = ""
+  const escapedIn = filePath.replace(/"/g, '`"')
+  const escapedOut = outPath.replace(/"/g, '`"')
+  
+  if (['doc', 'docx'].includes(ext || '')) {
+    script = `
+      try {
+        $word = New-Object -ComObject Word.Application
+        if ($null -eq $word) { throw "Word not found" }
+        $word.Visible = $false
+        $doc = $word.Documents.Open("${escapedIn}")
+        if ($null -eq $doc) { throw "Failed to open document" }
+        $doc.ExportAsFixedFormat("${escapedOut}", 17)
+        $doc.Close(0)
+        $word.Quit()
+        Write-Output "success"
+      } catch { 
+        Write-Output "Error: $($_.Exception.Message)"
+        if ($word) { $word.Quit() }
+      }
+    `
+  } else if (['xls', 'xlsx'].includes(ext || '')) {
+    script = `
+      try {
+        $excel = New-Object -ComObject Excel.Application
+        if ($null -eq $excel) { throw "Excel not found" }
+        $excel.Visible = $false
+        $wb = $excel.Workbooks.Open("${escapedIn}")
+        if ($null -eq $wb) { throw "Failed to open workbook" }
+        $wb.ExportAsFixedFormat(0, "${escapedOut}")
+        $wb.Close($false)
+        $excel.Quit()
+        Write-Output "success"
+      } catch { 
+        Write-Output "Error: $($_.Exception.Message)"
+        if ($excel) { $excel.Quit() }
+      }
+    `
+  } else if (['ppt', 'pptx'].includes(ext || '')) {
+    script = `
+      try {
+        $ppt = New-Object -ComObject PowerPoint.Application
+        if ($null -eq $ppt) { throw "PowerPoint not found" }
+        $pres = $ppt.Presentations.Open("${escapedIn}", -1, 0, 0)
+        if ($null -eq $pres) { throw "Failed to open presentation" }
+        $pres.SaveAs("${escapedOut}", 32)
+        $pres.Close()
+        $ppt.Quit()
+        Write-Output "success"
+      } catch { 
+        Write-Output "Error: $($_.Exception.Message)"
+        if ($ppt) { $ppt.Quit() }
+      }
+    `
+  }
+
+  if (!script) return false
+
+  const scriptPath = join(app.getPath('temp'), `convert_${Date.now()}.ps1`)
+  fs.writeFileSync(scriptPath, script, 'utf8')
+
+  return new Promise((resolve) => {
+    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
+      fs.unlinkSync(scriptPath) // Clean up
+      if (err || !stdout.includes("success")) {
+        console.error("Conversion failed:", stdout)
+        resolve(false)
+      } else {
+        resolve(true)
+      }
+    })
+  })
+})
