@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@kalimahapps/vue-icons": "^1.9.5",
     "better-sqlite3": "^11.5.0",
     "cheerio": "^1.2.0",
     "mammoth": "^1.8.0",

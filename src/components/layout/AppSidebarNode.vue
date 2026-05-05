@@ -7,14 +7,18 @@
         @click="isOpen = !isOpen"
         @contextmenu.prevent.stop="$emit('context-menu', { node, x: $event.clientX, y: $event.clientY })"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-transform" :class="{'rotate-90': isOpen}">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-        <svg class="text-blue-400 shrink-0" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <IoOutlineChevronForward 
+          class="shrink-0 transition-transform duration-200 text-gray-400" 
+          :class="{'rotate-90': isOpen}"
+        />
+        <component 
+          :is="isOpen ? IoSharpFolderOpen : IoSharpFolder" 
+          class="text-blue-400 shrink-0 text-lg"
+        />
         <span class="truncate">{{ node.name }}</span>
       </div>
       
-      <ul v-if="isOpen && node.children" class="pl-4 space-y-0.5 mt-0.5 border-l border-gray-200 ml-5">
+      <div v-if="isOpen && node.children" class="ml-3 border-l border-gray-100 pl-2 mt-0.5 space-y-0.5">
         <AppSidebarNode 
           v-for="child in node.children" 
           :key="child.path" 
@@ -23,7 +27,7 @@
           @select-file="$emit('select-file', $event)"
           @context-menu="$emit('context-menu', $event)"
         />
-      </ul>
+      </div>
     </div>
 
     <!-- File -->
@@ -33,15 +37,16 @@
          @click="$emit('select-file', node)"
          @contextmenu.prevent.stop="$emit('context-menu', { node, x: $event.clientX, y: $event.clientY })">
       
-      <FileIcon :type="node.fileType" />
+      <FileIcon :type="node.fileType || ''" />
       <span class="truncate flex-1">{{ node.name }}</span>
-      <StatusDot :status="node.status" />
+      <StatusDot :status="node.status || 'unprocessed'" />
     </div>
   </li>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { IoOutlineChevronForward, IoSharpFolder, IoSharpFolderOpen } from '@kalimahapps/vue-icons'
 import FileIcon from '../ui/FileIcon.vue'
 import StatusDot from '../ui/StatusDot.vue'
 import type { TreeNode } from './AppSidebar.vue'

@@ -17,14 +17,12 @@
         :class="item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:text-blue-700'"
       >
         <div class="flex items-center gap-2.5">
-          <component :is="item.icon" v-if="item.icon" class="w-4 h-4" :class="item.danger ? 'text-red-500' : 'text-gray-400 group-hover:text-blue-500'" />
+          <component :is="item.icon" v-if="item.icon" class="text-lg" :class="item.danger ? 'text-red-500' : 'text-gray-400 group-hover:text-blue-500'" />
           <span class="font-medium">{{ item.label }}</span>
         </div>
         
         <!-- Submenu Arrow -->
-        <svg v-if="item.children" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
+        <IoOutlineChevronForward v-if="item.children" class="text-sm text-gray-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5" />
 
         <!-- Submenu -->
         <div 
@@ -37,7 +35,7 @@
             @click.stop="handleItemClick(child)"
             class="px-3 py-1.5 mx-1 rounded-lg text-sm flex items-center gap-2.5 cursor-pointer transition-all hover:bg-blue-50 text-gray-700 hover:text-blue-700 font-medium"
           >
-            <component :is="child.icon" v-if="child.icon" class="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+            <component :is="child.icon" v-if="child.icon" class="text-lg text-gray-400 group-hover:text-blue-500" />
             <span>{{ child.label }}</span>
           </div>
         </div>
@@ -48,6 +46,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { IoOutlineChevronForward } from '@kalimahapps/vue-icons'
 
 export interface MenuItem {
   label?: string
