@@ -40,10 +40,9 @@ async function setup() {
         downloadFile(bin.downloadUrl, installerPath);
         
         console.log(`[INSTALLING] Running silent installation for ${bin.name}...`);
-        const installCmd = bin.getInstallCmd(installerPath, PROJECT_ROOT);
         
-        // Use PowerShell to run the installer and wait for it
-        execSync(`powershell -Command "Start-Process -FilePath '${installerPath}' -ArgumentList '/S', '/D=${path.join(PROJECT_ROOT, 'bin', bin.id)}' -Wait"`, { stdio: 'inherit' });
+        const targetPath = path.join(PROJECT_ROOT, 'bin', bin.id);
+        execSync(`powershell -Command "Start-Process -FilePath '${installerPath}' -ArgumentList '/S', '/D=${targetPath}' -Wait"`, { stdio: 'inherit' });
         
         console.log(`[SUCCESS] ${bin.name} installed successfully.`);
         

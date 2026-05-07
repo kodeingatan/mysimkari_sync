@@ -7,7 +7,7 @@ const path = require('path');
  */
 module.exports = {
   ghostscript: {
-    id: 'ghostscript',
+    id: 'gs',
     name: 'Ghostscript',
     exe64: 'gswin64c.exe',
     exe32: 'gswin32c.exe',
