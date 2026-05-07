@@ -4,7 +4,9 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
+    "predev": "node scripts/setup-binaries.js",
     "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "prebuild": "node scripts/setup-binaries.js",
     "preview": "vite preview"
   },
   "dependencies": {

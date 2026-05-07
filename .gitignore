@@ -35,3 +35,7 @@ mysimkari.sqlite
 release/
 out/
 build/
+
+# Binaries
+bin/
+gs_installer.exe

@@ -1,9 +1,10 @@
 import { app, BrowserWindow, ipcMain, dialog, session, shell } from 'electron'
 import { join, dirname, basename, extname } from 'path'
 import * as fs from 'fs'
-import { exec } from 'child_process'
+import { exec, spawn } from 'child_process'
 import Database from 'better-sqlite3'
 import { parseDocument } from './parser'
+import { getBinaryPath } from './binManager'
 
 let mainWindow: BrowserWindow | null = null
 let db: Database.Database | null = null
@@ -14,7 +15,6 @@ const DIST_ELECTRON = join(__dirname, '../dist-electron')
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 const DB_PATH = join(app.getPath('userData'), 'mysimkari.sqlite')
 
-// Initialize SQLite
 function initDB() {
   db = new Database(DB_PATH)
   db.pragma('journal_mode = WAL')
@@ -36,6 +36,8 @@ function initDB() {
     );
   `)
 }
+
+
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -405,42 +407,72 @@ ipcMain.handle('open-with-app', async (_event, path: string, app: string) => {
 })
 
 ipcMain.handle('compress-pdf', async (_event, filePath: string) => {
-  const dir = filePath.substring(0, filePath.lastIndexOf('\\'))
-  const ext = filePath.split('.').pop()
-  const name = filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))
-  const outPath = join(dir, `${name}_compress.${ext}`)
+  const dir = dirname(filePath)
+  const name = basename(filePath, extname(filePath))
+  const outPath = join(dir, `${name}_compressed.pdf`)
+  const gsCommand = getBinaryPath('ghostscript')
 
-  const scriptPath = join(app.getPath('temp'), `compress_${Date.now()}.ps1`)
-  const script = `
-    try {
-      $word = New-Object -ComObject Word.Application
-      if ($null -eq $word) { throw "Could not create Word object" }
-      $word.Visible = $false
-      $doc = $word.Documents.Open("${filePath.replace(/"/g, '`"')}", $false, $true)
-      if ($null -eq $doc) { throw "Could not open document" }
-      $doc.ExportAsFixedFormat("${outPath.replace(/"/g, '`"')}", 17, $false, 1)
-      $doc.Close(0)
-      $word.Quit()
-      Write-Output "success"
-    } catch {
-      Write-Output "Error: $($_.Exception.Message)"
-      if ($word) { $word.Quit() }
-    }
-  `
-  
-  fs.writeFileSync(scriptPath, script, 'utf8')
-
-  return new Promise((resolve) => {
-    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
-      fs.unlinkSync(scriptPath) // Clean up
-      if (err || !stdout.includes("success")) {
-        console.error("Compression failed:", stdout)
-        resolve(false)
-      } else {
-        resolve(true)
-      }
+  const runGhostscript = () => {
+    return new Promise((resolve) => {
+      const args = [
+        '-sDEVICE=pdfwrite',
+        '-dCompatibilityLevel=1.4',
+        '-dPDFSETTINGS=/ebook',
+        '-dNOPAUSE',
+        '-dBATCH',
+        `-sOutputFile=${outPath}`,
+        filePath
+      ]
+      console.log(`Attempting Ghostscript: ${gsCommand}`)
+      const proc = spawn(gsCommand, args)
+      proc.on('error', (err: any) => {
+        if (err.code === 'ENOENT') {
+          console.warn("Ghostscript not found, falling back to Word...")
+          resolve('FALLBACK')
+        } else {
+          resolve(false)
+        }
+      })
+      proc.on('close', (code) => {
+        if (code === 0) resolve(true)
+        else resolve(false)
+      })
     })
-  })
+  }
+
+  const runWordFallback = () => {
+    return new Promise((resolve) => {
+      const scriptPath = join(app.getPath('temp'), `compress_fallback_${Date.now()}.ps1`)
+      const script = `
+        try {
+          $word = New-Object -ComObject Word.Application
+          $word.Visible = $false
+          $word.DisplayAlerts = 0
+          $doc = $word.Documents.Open("${filePath.replace(/"/g, '`"')}", $false, $true)
+          # Use OptimizeForPrint (0) to maintain quality, Word will still optimize the structure
+          $doc.ExportAsFixedFormat("${outPath.replace(/"/g, '`"')}", 17, $false, 0)
+          $doc.Close(0)
+          $word.Quit()
+          Write-Output "success"
+        } catch {
+          if ($word) { $word.Quit() }
+          Write-Output "error"
+        }
+      `
+      fs.writeFileSync(scriptPath, script, 'utf8')
+      exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
+        fs.unlinkSync(scriptPath)
+        if (!err && stdout.includes("success")) resolve(true)
+        else resolve(false)
+      })
+    })
+  }
+
+  const result = await runGhostscript()
+  if (result === 'FALLBACK') {
+    return await runWordFallback()
+  }
+  return result
 })
 
 ipcMain.handle('convert-to-pdf', async (_event, filePath: string) => {
