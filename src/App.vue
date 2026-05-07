@@ -4,9 +4,7 @@
 
     <div class="flex flex-1 overflow-hidden">
       <!-- Sidebar / Tree View -->
-      <AppSidebar :files="files" :selectedFile="selectedFile" 
-        @select-folder="selectFolder" 
-        @select-file="selectFile"
+      <AppSidebar :files="files" :selectedFile="selectedFile" @select-folder="selectFolder" @select-file="selectFile"
         @refresh="refreshFolder" />
 
       <!-- Main Content -->
@@ -21,7 +19,8 @@
             <div class="flex items-start justify-between mb-6">
               <div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-1">Document Verification</h2>
-                <p class="text-sm text-gray-500">{{ selectedFile.name }}</p>
+                <p class="text-sm text-gray-500">{{ selectedFile.name }} ({{ (selectedFile.size / 1024 /
+                  1024).toFixed(2) }} MB)</p>
               </div>
               <StatusBadge :status="selectedFile.status || 'unprocessed'" />
             </div>
@@ -200,15 +199,22 @@ const refreshFolder = async () => {
 }
 
 const selectFile = async (file: TreeNode) => {
-  selectedFile.value = file
 
+
+
+  let size = 0
   let mtime = ''
   // @ts-ignore
   if (window.ipcRenderer) {
     // @ts-ignore
     const stats = await window.ipcRenderer.invoke('get-file-stats', file.path)
-    if (stats) mtime = stats.mtime
+    if (stats) {
+      mtime = stats.mtime
+      size = stats.size
+    }
   }
+
+  selectedFile.value = { ...file, size, mtime }
 
   if (file.status === 'unprocessed') {
     // Attempt to parse

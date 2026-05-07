@@ -50,6 +50,8 @@ import ContextMenu, { MenuItem } from '../ui/ContextMenu.vue'
 export interface TreeNode {
   name: string
   path: string
+  size: number
+  mtime: string
   type: 'folder' | 'file'
   children?: TreeNode[]
   fileType?: string

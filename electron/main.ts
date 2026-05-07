@@ -18,7 +18,7 @@ const DB_PATH = join(app.getPath('userData'), 'mysimkari.sqlite')
 function initDB() {
   db = new Database(DB_PATH)
   db.pragma('journal_mode = WAL')
-  
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
@@ -86,9 +86,9 @@ ipcMain.handle('select-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ['openDirectory']
   })
-  
+
   if (result.canceled) return null
-  
+
   const folderPath = result.filePaths[0]
   const fileTree = readDirRecursive(folderPath)
   return { folderPath, fileTree }
@@ -102,7 +102,7 @@ ipcMain.handle('read-folder', async (_event, folderPath: string) => {
 function readDirRecursive(dirPath: string): any[] {
   const items: any[] = []
   const files = fs.readdirSync(dirPath, { withFileTypes: true })
-  
+
   for (const f of files) {
     const fullPath = join(dirPath, f.name)
     if (f.isDirectory()) {
@@ -118,7 +118,7 @@ function readDirRecursive(dirPath: string): any[] {
     } else if (f.isFile() && f.name.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i)) {
       const ext = extname(fullPath).toLowerCase().replace('.', '')
       const existing = db?.prepare('SELECT * FROM documents WHERE path = ?').get(fullPath) as any
-      
+
       if (!existing) {
         db?.prepare('INSERT INTO documents (path, name, type, status) VALUES (?, ?, ?, ?)').run(fullPath, f.name, ext, 'unprocessed')
         items.push({
@@ -173,7 +173,7 @@ ipcMain.handle('login-mysimkari', async () => {
         partition: 'persist:mysimkari' // persistent session
       }
     })
-    
+
     // 1. Open browser to mysimkari
     authWindow.loadURL('https://mysimkari.kejaksaan.go.id/')
 
@@ -197,7 +197,7 @@ ipcMain.handle('login-mysimkari', async () => {
 
     authWindow.webContents.on('did-navigate', (event, url) => checkUrl(url))
     authWindow.webContents.on('did-redirect-navigation', (event, url) => checkUrl(url))
-    
+
     authWindow.on('closed', () => {
       resolve(false) // User closed window before login was completed
     })
@@ -214,7 +214,7 @@ ipcMain.handle('logout-mysimkari', async () => {
 ipcMain.handle('get-form-options', async () => {
   const sessionRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('session') as any
   const userRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('uniqueuserid') as any
-  
+
   if (!sessionRow || !userRow) return null
 
   const cookies = JSON.parse(sessionRow.value)
@@ -229,7 +229,7 @@ ipcMain.handle('get-form-options', async () => {
     const extractOptions = (id: string) => {
       const selectMatch = html.match(new RegExp(`<select[^>]*id="${id}"[^>]*>([\\s\\S]*?)<\\/select>`))
       if (!selectMatch) return []
-      
+
       const options = []
       const optionRegex = /<option[^>]*value="([^"]*)"(?:[^>]*data-kegiatan-saya="([^"]*)")?[^>]*>([\s\S]*?)<\/option>/g
       let match
@@ -260,7 +260,8 @@ ipcMain.handle('get-file-stats', async (_event, path: string) => {
   try {
     const stats = fs.statSync(path)
     return {
-      mtime: stats.mtime.toISOString().split('T')[0]
+      mtime: stats.mtime.toISOString().split('T')[0],
+      size: stats.size
     }
   } catch (error) {
     return null
@@ -346,9 +347,9 @@ ipcMain.handle('show-item-in-folder', async (_event, path: string) => {
 
 ipcMain.handle('get-associated-apps', async (_event, ext: string) => {
   if (process.platform !== 'win32') return []
-  
+
   const cleanExt = ext.startsWith('.') ? ext : `.${ext}`
-  
+
   return new Promise((resolve) => {
     const script = `
       $ext = "${cleanExt}";
@@ -382,7 +383,7 @@ ipcMain.handle('get-associated-apps', async (_event, ext: string) => {
       }
       $apps | Select-Object -Unique | Where-Object { $_ -match "\\.exe$" } | ConvertTo-Json
     `;
-    
+
     exec(`powershell -Command "${script.replace(/\n/g, ' ')}"`, (error, stdout) => {
       if (error || !stdout) {
         // Last resort fallback if PS fails
@@ -484,7 +485,7 @@ ipcMain.handle('convert-to-pdf', async (_event, filePath: string) => {
   let script = ""
   const escapedIn = filePath.replace(/"/g, '`"')
   const escapedOut = outPath.replace(/"/g, '`"')
-  
+
   if (['doc', 'docx'].includes(ext || '')) {
     script = `
       try {
