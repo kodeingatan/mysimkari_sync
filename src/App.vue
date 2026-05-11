@@ -95,6 +95,29 @@
             </div>
           </div>
         </div>
+
+        <!-- todo buatkan history sync kinerja ambil dari database sql yang telah di buat sebelumnya dan sesuaikan juga dengan api berikut -->
+        <!-- /api/v1/data/kinerja/riwayat/list -->
+        <!-- fetch("https://mysimkari.kejaksaan.go.id/get-kinerja/199810232022031012/all/data", {
+  "headers": {
+    "accept": "*/*",
+    "accept-language": "en-US,en;q=0.9,id;q=0.8",
+    "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-csrf-token": "3uPcUXmFqYZ9BJeDgIyDJvDKGnOtvThcMnIecb9q",
+    "x-requested-with": "XMLHttpRequest",
+    "cookie": "_ga=GA1.1.461422244.1758698811; _ga_MMY83V6NQE=GS2.1.s1775617794$o14$g1$t1775618903$j60$l0$h0; XSRF-TOKEN=eyJpdiI6IlcrS25CcHhOYjVwRFpQZ3VRdHhqZEE9PSIsInZhbHVlIjoiekRqRE1aVS9Mci9mYVVVZDM2Y0RwOGl2WHFvZ0F2K1lXUG1VRHlGdUp6bXlQN0FQbSt0OERMN1VnZTZRZTN5eTVEeVNTaXowVzN0Ti9BaGkrR25sSERWMFdvYVJTbFZCc0dpZzBmTUlGT1QzTG1mSno2bGRTTjhiU3V5OXd4MGMiLCJtYWMiOiIzZWE5MDY4YjliNThmNmI3M2RiZDU4YmE3ZWYwYmQ2YjljMjllNmUwYWRhOGZiMTBiNjc5OWJkZmUyNzFkY2FkIn0%3D; laravel_session=eyJpdiI6ImFVcFFLZnNMZS9tdlBsOGRRK3VqbGc9PSIsInZhbHVlIjoiR0pHSnE4QjN5ZUV6NEFQc2Izd0FBQ0dRUjlBSzJPWGdQdVBzZDJYRmtXN2ppMFN0VkRtaTc1T0JzWmEwMFEzdUNaWkQvYjR3aEtCajMya1dJUWo1WjlDWGpDNnoxdUNzdHZEeEdHN0hHYlhnU3NObUlLWm1ybExCaEorOHVvbTMiLCJtYWMiOiJjYmI3YjljNjFkNWFlNGQwY2U1NDJmMTk2NjRlNWMwNWMyY2YxNzcyMmU3MjAyMjQyN2E1ODdlNGQ4MDc0YjEyIn0%3D; TS014f6234=0170e05daed8f6ab4a7d7c77041817461f95dcc01ba793792471c571fc897ab455ecd0f881bd2f9e2a658c06eb4ed4d3a4f361b99397ee4c013a7110d18af00171a4a0fbb6f15364e330161edd7787002cec606126",
+    "Referer": "https://mysimkari.kejaksaan.go.id/dashboard-utama/pegawai/cdf7318f-b1c3-11ec-a93f-0050560502f5"
+  },
+  "body": null,
+  "method": "GET"
+}); -->
+
+
       </main>
     </div>
   </div>
@@ -287,7 +310,7 @@ const syncData = async () => {
   // @ts-ignore
   if (window.ipcRenderer) {
     // @ts-ignore
-    const success = await window.ipcRenderer.invoke('sync-data', selectedFile.value.path, formData.value)
+    const success = await window.ipcRenderer.invoke('sync-data', selectedFile.value.path, JSON.parse(JSON.stringify(formData.value)))
     isSyncing.value = false
     if (success) {
       selectedFile.value.status = 'synced'

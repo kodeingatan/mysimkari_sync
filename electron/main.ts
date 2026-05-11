@@ -160,8 +160,17 @@ ipcMain.handle('check-session', () => {
   return !!sessionRow
 })
 
-ipcMain.handle('login-mysimkari', async () => {
-  return new Promise((resolve) => {
+ipcMain.handle('login-mysimkari', () => {
+  return new Promise<boolean>((resolve) => {
+    let resolved = false
+
+    const finish = (value: boolean) => {
+      if (!resolved) {
+        resolved = true
+        resolve(value)
+      }
+    }
+
     const authWindow = new BrowserWindow({
       width: 800,
       height: 700,
@@ -170,36 +179,93 @@ ipcMain.handle('login-mysimkari', async () => {
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        partition: 'persist:mysimkari' // persistent session
+        partition: 'persist:mysimkari'
       }
     })
 
-    // 1. Open browser to mysimkari
     authWindow.loadURL('https://mysimkari.kejaksaan.go.id/')
 
-    // 2. Wait until url directs to /pegawai/edit
     const checkUrl = async (url: string) => {
-      if (url.includes('https://mysimkari.kejaksaan.go.id/pegawai/edit')) {
-        // Extract uniqueuserid if it exists after /edit/
+      try {
+        if (!url.includes('/pegawai/edit')) return
+
+        let uniqueuserid: string | null = null
+
         const match = url.match(/\/pegawai\/edit\/([^\/?#]+)/)
+
         if (match) {
-          const uniqueuserid = match[1]
-          db?.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('uniqueuserid', uniqueuserid)
+          uniqueuserid = match[1]
+
+          db?.prepare(`
+            INSERT OR REPLACE INTO settings (key, value)
+            VALUES (?, ?)
+          `).run('uniqueuserid', uniqueuserid)
         }
 
-        // 3. Get session/cookies and save to settings
-        const cookies = await session.fromPartition('persist:mysimkari').cookies.get({ url: 'https://mysimkari.kejaksaan.go.id' })
-        db?.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('session', JSON.stringify(cookies))
+        const ses = session.fromPartition('persist:mysimkari')
+
+        const cookies = await ses.cookies.get({
+          url: 'https://mysimkari.kejaksaan.go.id'
+        })
+
+        db?.prepare(`
+          INSERT OR REPLACE INTO settings (key, value)
+          VALUES (?, ?)
+        `).run('session', JSON.stringify(cookies))
+
+        if (uniqueuserid && cookies.length > 0) {
+          const cookieString = cookies
+            .map((c) => `${c.name}=${c.value}`)
+            .join('; ')
+
+          try {
+            const resp = await fetch(
+              `https://mysimkari.kejaksaan.go.id/pegawai/edit/${uniqueuserid}`,
+              {
+                headers: {
+                  Cookie: cookieString
+                }
+              }
+            )
+
+            const html = await resp.text()
+
+            const nipMatch = html.match(
+              /<input[^>]*name="nip"[^>]*value="([^"]*)"/i
+            )
+
+            if (nipMatch) {
+              const nip = nipMatch[1]
+
+              db?.prepare(`
+                INSERT OR REPLACE INTO settings (key, value)
+                VALUES (?, ?)
+              `).run('nip', nip)
+            }
+          } catch (err) {
+            console.error('Failed to fetch NIP:', err)
+          }
+        }
+
         authWindow.close()
-        resolve(true)
+
+        finish(true)
+      } catch (err) {
+        console.error(err)
+        finish(false)
       }
     }
 
-    authWindow.webContents.on('did-navigate', (event, url) => checkUrl(url))
-    authWindow.webContents.on('did-redirect-navigation', (event, url) => checkUrl(url))
+    authWindow.webContents.on('did-navigate', (_, url) => {
+      checkUrl(url)
+    })
+
+    authWindow.webContents.on('did-redirect-navigation', (_, url) => {
+      checkUrl(url)
+    })
 
     authWindow.on('closed', () => {
-      resolve(false) // User closed window before login was completed
+      finish(false)
     })
   })
 })
@@ -277,9 +343,13 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
 
   try {
     // 1. Fetch page to extract raw CSRF token
-    const getResp = await fetch('https://mysimkari.kejaksaan.go.id/dashboard-utama', {
+    const userRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('uniqueuserid') as any
+    if (!userRow) return false
+    const uniqueuserid = userRow.value
+    const getResp = await fetch(`https://mysimkari.kejaksaan.go.id/pegawai/edit/${uniqueuserid}`, {
       headers: { 'Cookie': cookieString }
     })
+
     const html = await getResp.text()
     const tokenMatch = html.match(/<meta name="csrf-token" content="([^"]+)">/)
     const csrfToken = tokenMatch ? tokenMatch[1] : ''
