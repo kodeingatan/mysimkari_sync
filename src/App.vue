@@ -96,26 +96,58 @@
           </div>
         </div>
 
-        <!-- todo buatkan history sync kinerja ambil dari database sql yang telah di buat sebelumnya dan sesuaikan juga dengan api berikut -->
-        <!-- /api/v1/data/kinerja/riwayat/list -->
-        <!-- fetch("https://mysimkari.kejaksaan.go.id/get-kinerja/199810232022031012/all/data", {
-  "headers": {
-    "accept": "*/*",
-    "accept-language": "en-US,en;q=0.9,id;q=0.8",
-    "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": "\"Windows\"",
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-origin",
-    "x-csrf-token": "3uPcUXmFqYZ9BJeDgIyDJvDKGnOtvThcMnIecb9q",
-    "x-requested-with": "XMLHttpRequest",
-    "cookie": "_ga=GA1.1.461422244.1758698811; _ga_MMY83V6NQE=GS2.1.s1775617794$o14$g1$t1775618903$j60$l0$h0; XSRF-TOKEN=eyJpdiI6IlcrS25CcHhOYjVwRFpQZ3VRdHhqZEE9PSIsInZhbHVlIjoiekRqRE1aVS9Mci9mYVVVZDM2Y0RwOGl2WHFvZ0F2K1lXUG1VRHlGdUp6bXlQN0FQbSt0OERMN1VnZTZRZTN5eTVEeVNTaXowVzN0Ti9BaGkrR25sSERWMFdvYVJTbFZCc0dpZzBmTUlGT1QzTG1mSno2bGRTTjhiU3V5OXd4MGMiLCJtYWMiOiIzZWE5MDY4YjliNThmNmI3M2RiZDU4YmE3ZWYwYmQ2YjljMjllNmUwYWRhOGZiMTBiNjc5OWJkZmUyNzFkY2FkIn0%3D; laravel_session=eyJpdiI6ImFVcFFLZnNMZS9tdlBsOGRRK3VqbGc9PSIsInZhbHVlIjoiR0pHSnE4QjN5ZUV6NEFQc2Izd0FBQ0dRUjlBSzJPWGdQdVBzZDJYRmtXN2ppMFN0VkRtaTc1T0JzWmEwMFEzdUNaWkQvYjR3aEtCajMya1dJUWo1WjlDWGpDNnoxdUNzdHZEeEdHN0hHYlhnU3NObUlLWm1ybExCaEorOHVvbTMiLCJtYWMiOiJjYmI3YjljNjFkNWFlNGQwY2U1NDJmMTk2NjRlNWMwNWMyY2YxNzcyMmU3MjAyMjQyN2E1ODdlNGQ4MDc0YjEyIn0%3D; TS014f6234=0170e05daed8f6ab4a7d7c77041817461f95dcc01ba793792471c571fc897ab455ecd0f881bd2f9e2a658c06eb4ed4d3a4f361b99397ee4c013a7110d18af00171a4a0fbb6f15364e330161edd7787002cec606126",
-    "Referer": "https://mysimkari.kejaksaan.go.id/dashboard-utama/pegawai/cdf7318f-b1c3-11ec-a93f-0050560502f5"
-  },
-  "body": null,
-  "method": "GET"
-}); -->
+
+        <!-- History Section -->
+        <div class="max-w-3xl w-full mx-auto mt-12 pb-12">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <IoOutlineSync class="text-primary" />
+              Recent Sync History
+            </h3>
+            <button @click="fetchSyncHistory" :disabled="isLoadingHistory"
+              class="text-sm text-primary hover:underline flex items-center gap-1">
+              <IoOutlineSync :class="{ 'animate-spin': isLoadingHistory }" />
+              Refresh
+            </button>
+          </div>
+
+          <div v-if="isLoadingHistory && syncHistory.length === 0" class="flex justify-center py-12">
+            <IoOutlineSync class="animate-spin text-3xl text-gray-300" />
+          </div>
+
+          <div v-else-if="syncHistory.length === 0"
+            class="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-gray-400">
+            No synchronization history found.
+          </div>
+
+          <div v-else class="space-y-3">
+            <div v-for="item in filteredSyncHistory" :key="item.id"
+              class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-primary/30 transition-all group">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 group-hover:text-primary transition-colors">{{ item.name ||
+                    'Untitled Activity' }}</h4>
+                  <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
+                    <span class="flex items-center gap-1">
+                      <IoOutlineCalendar class="text-gray-400" />
+                      {{ item.date }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <IoOutlineSync class="text-gray-400" />
+                      {{ item.tipe }}
+                    </span>
+                    <span v-if="item.status" :class="[
+                      'px-2 py-0.5 rounded-full text-[10px] font-medium',
+                      item.status === 'Sudah Diverifikasi' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                    ]">
+                      {{ item.status }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
 
       </main>
@@ -124,8 +156,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { IoOutlineDocument, IoOutlineSync, IoOutlineCloudUpload } from '@kalimahapps/vue-icons'
+import { ref, onMounted, computed } from 'vue'
+import { IoOutlineDocument, IoOutlineSync, IoOutlineCloudUpload, IoOutlineCalendar } from '@kalimahapps/vue-icons'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppSidebar, { TreeNode } from './components/layout/AppSidebar.vue'
 import StatusBadge from './components/ui/StatusBadge.vue'
@@ -137,6 +169,8 @@ const currentFolderPath = ref<string | null>(null)
 const selectedFile = ref<TreeNode | null>(null)
 const isLoggedIn = ref(false)
 const isSyncing = ref(false)
+const syncHistory = ref<any[]>([])
+const isLoadingHistory = ref(false)
 
 const formOptions = ref({
   tipe: [] as any[],
@@ -166,6 +200,33 @@ const fetchOptions = async () => {
   }
 }
 
+const fetchSyncHistory = async () => {
+  // @ts-ignore
+  if (window.ipcRenderer) {
+    isLoadingHistory.value = true
+    // @ts-ignore
+    const history = await window.ipcRenderer.invoke('get-sync-history')
+    console.log({ history })
+    if (history) {
+      syncHistory.value = history
+    }
+    isLoadingHistory.value = false
+  }
+}
+
+const filteredSyncHistory = computed(() => {
+  console.log('formData.value.date', formData.value.date)
+  if (!formData.value.date) return syncHistory.value
+
+  // Convert YYYY-MM-DD (from input date) to DD-MM-YYYY (from API)
+  const [year, month, day] = formData.value.date.split('-')
+  const formattedDate = `${day}-${month}-${year}`
+
+  return syncHistory.value.filter(item => {
+    return item.tanggal_kegiatan === formattedDate
+  })
+})
+
 // Initialize session check
 onMounted(async () => {
   // @ts-ignore
@@ -174,6 +235,7 @@ onMounted(async () => {
     isLoggedIn.value = await window.ipcRenderer.invoke('check-session')
     if (isLoggedIn.value) {
       fetchOptions()
+      fetchSyncHistory()
     }
   }
 })
@@ -316,6 +378,7 @@ const syncData = async () => {
       selectedFile.value.status = 'synced'
       selectedFile.value.parsedData = { ...formData.value }
       alert("Successfully synced to MySimkari!")
+      fetchSyncHistory()
     } else {
       alert("Failed to sync! Please check your connection and login status.")
     }

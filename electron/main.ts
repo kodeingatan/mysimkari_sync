@@ -336,10 +336,12 @@ ipcMain.handle('get-file-stats', async (_event, path: string) => {
 
 ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
   const sessionRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('session') as any
-  if (!sessionRow) return false
+  const nipRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('nip') as any
+  if (!sessionRow || !nipRow) return false
 
   const cookies = JSON.parse(sessionRow.value)
   const cookieString = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ')
+  const nip = nipRow.value
 
   try {
     // 1. Fetch page to extract raw CSRF token
@@ -370,7 +372,7 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
     payload.append('tanggal_kegiatan', formData.date)
     payload.append('menit', formData.menit?.toString() || '420')
     payload.append('file', fileBlob, fileName)
-    payload.append('nip', '199810232022031012') // Tetap gunakan NIP contoh jika tidak ada di session
+    payload.append('nip', nip) // Tetap gunakan NIP contoh jika tidak ada di session
 
     // 3. Send POST Request
     const response = await fetch('https://mysimkari.kejaksaan.go.id/ekinerja/simpankinerja/indikator/new', {
@@ -399,6 +401,33 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
   } catch (error) {
     console.error('Sync error:', error)
     return false
+  }
+})
+
+ipcMain.handle('get-sync-history', async () => {
+  const sessionRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('session') as any
+  const nipRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('nip') as any
+
+  if (!sessionRow || !nipRow) return null
+
+  const cookies = JSON.parse(sessionRow.value)
+  const cookieString = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ')
+  const nip = nipRow.value
+
+  try {
+    const response = await fetch(`https://mysimkari.kejaksaan.go.id/get-kinerja/${nip}/all/data`, {
+      headers: {
+        'Cookie': cookieString,
+        'x-requested-with': 'XMLHttpRequest',
+        'Referer': 'https://mysimkari.kejaksaan.go.id/dashboard-utama/pegawai'
+      }
+    })
+
+    if (!response.ok) return null
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching sync history:', error)
+    return null
   }
 })
 
