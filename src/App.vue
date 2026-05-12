@@ -2,10 +2,17 @@
   <div class="h-screen w-screen flex flex-col bg-background text-gray-800">
     <AppHeader :isLoggedIn="isLoggedIn" @login="login" @logout="logout" />
 
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden relative" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
       <!-- Sidebar / Tree View -->
-      <AppSidebar :files="files" :selectedFile="selectedFile" @select-folder="selectFolder" @select-file="selectFile"
+      <AppSidebar :files="files" :selectedFile="selectedFile" :width="sidebarWidth" @select-folder="selectFolder" @select-file="selectFile"
         @refresh="refreshFolder" />
+
+      <!-- Resizer Divider -->
+      <div 
+        class="w-1 hover:w-1.5 bg-transparent hover:bg-primary/30 cursor-col-resize z-10 transition-all duration-200 absolute"
+        :style="{ left: sidebarWidth - 2 + 'px', height: '100%' }"
+        @mousedown="onMouseDown"
+      ></div>
 
       <!-- Main Content -->
       <main class="flex-1 bg-gray-50 flex flex-col p-8 overflow-y-auto">
@@ -125,19 +132,40 @@
               class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-primary/30 transition-all group">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
-                  <h4 class="font-semibold text-gray-800 group-hover:text-primary transition-colors">{{ item.name ||
-                    'Untitled Activity' }}</h4>
-                  <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
-                    <span class="flex items-center gap-1">
-                      <IoOutlineCalendar class="text-gray-400" />
-                      {{ item.date }}
+                  <div class="flex items-center justify-between mb-1">
+                    <h4 class="font-semibold text-gray-800 group-hover:text-primary transition-colors">
+                      {{ item.name || item.nama_kegiatan || 'Untitled Activity' }}
+                    </h4>
+                    <div class="flex gap-2">
+                      <span v-if="item.is_iki"
+                        class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px] font-bold">
+                        IKI
+                      </span>
+                      <span v-if="item.is_verified"
+                        class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">
+                        VERIFIED
+                      </span>
+                    </div>
+                  </div>
+
+                  <p v-if="item.text_kegiatan" class="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+                    {{ item.text_kegiatan.replace(/<[^>]*>/g, "") }}
+                  </p>
+
+                  <div class="flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-gray-500">
+                    <span class="flex items-center gap-1.5">
+                      <IoOutlineCalendar class="text-gray-400 text-sm" />
+                      {{ item.tanggal_kegiatan || item.date }}
                     </span>
-                    <span class="flex items-center gap-1">
-                      <IoOutlineSync class="text-gray-400" />
-                      {{ item.tipe }}
+                    <span v-if="item.menit" class="flex items-center gap-1.5">
+                      <IoOutlineSync class="text-gray-400 text-sm" />
+                      {{ item.menit }} menit
+                    </span>
+                    <span v-if="item.nama_kegiatan && item.name" class="text-gray-400 italic">
+                      {{ item.name }}
                     </span>
                     <span v-if="item.status" :class="[
-                      'px-2 py-0.5 rounded-full text-[10px] font-medium',
+                      'ml-auto px-2 py-0.5 rounded-full text-[10px] font-medium',
                       item.status === 'Sudah Diverifikasi' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                     ]">
                       {{ item.status }}
@@ -171,6 +199,37 @@ const isLoggedIn = ref(false)
 const isSyncing = ref(false)
 const syncHistory = ref<any[]>([])
 const isLoadingHistory = ref(false)
+
+// Resizing
+const sidebarWidth = ref(288)
+const isResizing = ref(false)
+
+const onMouseDown = () => {
+  isResizing.value = true
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!isResizing.value) return
+  const newWidth = e.clientX
+  if (newWidth > 150 && newWidth < 600) {
+    sidebarWidth.value = newWidth
+  }
+}
+
+const onMouseUp = () => {
+  if (!isResizing.value) return
+  isResizing.value = false
+  document.body.style.cursor = 'default'
+  document.body.style.userSelect = 'auto'
+  
+  // Save width to settings
+  if (window.ipcRenderer) {
+    // @ts-ignore
+    window.ipcRenderer.invoke('save-setting', 'sidebarWidth', sidebarWidth.value.toString())
+  }
+}
 
 const formOptions = ref({
   tipe: [] as any[],
@@ -207,6 +266,7 @@ const fetchSyncHistory = async () => {
     // @ts-ignore
     const history = await window.ipcRenderer.invoke('get-sync-history')
     console.log({ history })
+    console.log({ history })
     if (history) {
       syncHistory.value = history
     }
@@ -233,6 +293,22 @@ onMounted(async () => {
   if (window.ipcRenderer) {
     // @ts-ignore
     isLoggedIn.value = await window.ipcRenderer.invoke('check-session')
+    
+    // Load last width
+    // @ts-ignore
+    const savedWidth = await window.ipcRenderer.invoke('get-setting', 'sidebarWidth')
+    if (savedWidth) sidebarWidth.value = parseInt(savedWidth)
+
+    // Load last folder
+    // @ts-ignore
+    const lastFolder = await window.ipcRenderer.invoke('get-setting', 'lastFolder')
+    if (lastFolder) {
+      currentFolderPath.value = lastFolder
+      // @ts-ignore
+      const result = await window.ipcRenderer.invoke('read-folder', lastFolder)
+      if (result) files.value = result
+    }
+
     if (isLoggedIn.value) {
       fetchOptions()
       fetchSyncHistory()
@@ -249,6 +325,10 @@ const selectFolder = async () => {
       files.value = result.fileTree
       currentFolderPath.value = result.folderPath
       selectedFile.value = null
+      
+      // Save last folder
+      // @ts-ignore
+      window.ipcRenderer.invoke('save-setting', 'lastFolder', result.folderPath)
     }
   } else {
     alert("Folder selection will be available in Electron app")

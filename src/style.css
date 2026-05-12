@@ -6,6 +6,22 @@
   body {
     @apply bg-background text-gray-800 font-sans m-0 p-0 overflow-hidden;
   }
+
+  /* Beautiful Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300/50 rounded-full hover:bg-gray-400/50 transition-colors;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
 }
 
 @layer utilities {

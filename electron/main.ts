@@ -343,8 +343,16 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
   const cookieString = cookies.map((c: any) => `${c.name}=${c.value}`).join('; ')
   const nip = nipRow.value
 
+  let processedPath = path
+  let isTempFile = false
+
   try {
-    // 1. Fetch page to extract raw CSRF token
+    // 1. Prepare/Compress file
+    const result = await prepareFileForSync(path)
+    processedPath = result.path
+    isTempFile = result.isTemp
+
+    // 2. Fetch page to extract raw CSRF token
     const userRow = db?.prepare('SELECT value FROM settings WHERE key = ?').get('uniqueuserid') as any
     if (!userRow) return false
     const uniqueuserid = userRow.value
@@ -356,10 +364,15 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
     const tokenMatch = html.match(/<meta name="csrf-token" content="([^"]+)">/)
     const csrfToken = tokenMatch ? tokenMatch[1] : ''
 
-    // 2. Prepare Payload
-    const fileBuffer = fs.readFileSync(path)
+    // 3. Prepare Payload
+    const fileBuffer = fs.readFileSync(processedPath)
     const fileBlob = new Blob([fileBuffer])
-    const fileName = path.split('\\').pop()?.split('/').pop() || 'document.pdf'
+    let fileName = basename(path)
+
+    // If converted to PDF (isTempFile), update extension to .pdf
+    if (isTempFile) {
+      fileName = fileName.replace(/\.[^/.]+$/, "") + ".pdf"
+    }
 
     const payload = new FormData()
     payload.append('_token', csrfToken)
@@ -372,9 +385,9 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
     payload.append('tanggal_kegiatan', formData.date)
     payload.append('menit', formData.menit?.toString() || '420')
     payload.append('file', fileBlob, fileName)
-    payload.append('nip', nip) // Tetap gunakan NIP contoh jika tidak ada di session
+    payload.append('nip', nip)
 
-    // 3. Send POST Request
+    // 4. Send POST Request
     const response = await fetch('https://mysimkari.kejaksaan.go.id/ekinerja/simpankinerja/indikator/new', {
       method: 'POST',
       headers: {
@@ -386,9 +399,14 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
       body: payload as any
     })
 
+    // Clean up temp file if created
+    if (isTempFile && fs.existsSync(processedPath)) {
+      try { fs.unlinkSync(processedPath) } catch (e) { }
+    }
+
     if (!response.ok) {
       if (response.status === 401 || response.status === 419) {
-        db?.prepare('DELETE FROM settings WHERE key = ?').run('session') // Session expired
+        db?.prepare('DELETE FROM settings WHERE key = ?').run('session')
       }
       console.error('Sync failed with status:', response.status, await response.text())
       return false
@@ -400,6 +418,9 @@ ipcMain.handle('sync-data', async (_event, path: string, formData: any) => {
     return true
   } catch (error) {
     console.error('Sync error:', error)
+    if (isTempFile && fs.existsSync(processedPath)) {
+      try { fs.unlinkSync(processedPath) } catch (e) { }
+    }
     return false
   }
 })
@@ -429,6 +450,16 @@ ipcMain.handle('get-sync-history', async () => {
     console.error('Error fetching sync history:', error)
     return null
   }
+})
+
+ipcMain.handle('save-setting', (_event, key: string, value: string) => {
+  db?.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, value)
+  return true
+})
+
+ipcMain.handle('get-setting', (_event, key: string) => {
+  const row = db?.prepare('SELECT value FROM settings WHERE key = ?').get(key) as any
+  return row ? row.value : null
 })
 
 ipcMain.handle('open-file', async (_event, path: string) => {
@@ -510,129 +541,182 @@ ipcMain.handle('compress-pdf', async (_event, filePath: string) => {
   const dir = dirname(filePath)
   const name = basename(filePath, extname(filePath))
   const outPath = join(dir, `${name}_compressed.pdf`)
-  const gsCommand = getBinaryPath('ghostscript')
 
-  const runGhostscript = () => {
-    return new Promise((resolve) => {
-      const args = [
-        '-sDEVICE=pdfwrite',
-        '-dCompatibilityLevel=1.4',
-        '-dPDFSETTINGS=/ebook',
-        '-dNOPAUSE',
-        '-dBATCH',
-        `-sOutputFile=${outPath}`,
-        filePath
-      ]
-      console.log(`Attempting Ghostscript: ${gsCommand}`)
-      const proc = spawn(gsCommand, args)
-      proc.on('error', (err: any) => {
-        if (err.code === 'ENOENT') {
-          console.warn("Ghostscript not found, falling back to Word...")
-          resolve('FALLBACK')
-        } else {
-          resolve(false)
-        }
-      })
-      proc.on('close', (code) => {
-        if (code === 0) resolve(true)
-        else resolve(false)
-      })
-    })
-  }
-
-  const runWordFallback = () => {
-    return new Promise((resolve) => {
-      const scriptPath = join(app.getPath('temp'), `compress_fallback_${Date.now()}.ps1`)
-      const script = `
-        try {
-          $word = New-Object -ComObject Word.Application
-          $word.Visible = $false
-          $word.DisplayAlerts = 0
-          $doc = $word.Documents.Open("${filePath.replace(/"/g, '`"')}", $false, $true)
-          # Use OptimizeForPrint (0) to maintain quality, Word will still optimize the structure
-          $doc.ExportAsFixedFormat("${outPath.replace(/"/g, '`"')}", 17, $false, 0)
-          $doc.Close(0)
-          $word.Quit()
-          Write-Output "success"
-        } catch {
-          if ($word) { $word.Quit() }
-          Write-Output "error"
-        }
-      `
-      fs.writeFileSync(scriptPath, script, 'utf8')
-      exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
-        fs.unlinkSync(scriptPath)
-        if (!err && stdout.includes("success")) resolve(true)
-        else resolve(false)
-      })
-    })
-  }
-
-  const result = await runGhostscript()
+  const result = await compressPdfInternal(filePath, outPath)
   if (result === 'FALLBACK') {
-    return await runWordFallback()
+    return await runWordFallback(filePath, outPath)
   }
   return result
 })
 
 ipcMain.handle('convert-to-pdf', async (_event, filePath: string) => {
-  const dir = filePath.substring(0, filePath.lastIndexOf('\\'))
-  const name = filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))
-  const ext = filePath.split('.').pop()?.toLowerCase()
+  const dir = dirname(filePath)
+  const name = basename(filePath, extname(filePath))
   const outPath = join(dir, `${name}_outpdf.pdf`)
+  return await convertToPdfInternal(filePath, outPath)
+})
 
+// --- Internal Helper Functions ---
+
+async function prepareFileForSync(filePath: string): Promise<{ path: string, isTemp: boolean }> {
+  const MAX_SIZE = 500 * 1024 // 500KB
+  let currentPath = filePath
+  let isTemp = false
+  const ext = extname(filePath).toLowerCase().replace('.', '')
+
+  try {
+    // 1. Convert to PDF if not already
+    if (ext !== 'pdf') {
+      const pdfPath = join(app.getPath('temp'), `sync_${Date.now()}.pdf`)
+      const success = await convertToPdfInternal(filePath, pdfPath)
+      if (success) {
+        currentPath = pdfPath
+        isTemp = true
+      }
+    }
+
+    // 2. Check size and compress if needed
+    let stats = fs.statSync(currentPath)
+    if (stats.size > MAX_SIZE) {
+      // Stage 1: /ebook (150dpi)
+      const compressedPath = join(app.getPath('temp'), `comp_ebook_${Date.now()}.pdf`)
+      let result = await compressPdfInternal(currentPath, compressedPath, '/ebook')
+
+      if (result === 'FALLBACK') {
+        result = await runWordFallback(currentPath, compressedPath)
+      }
+
+      if (result === true && fs.existsSync(compressedPath)) {
+        let compStats = fs.statSync(compressedPath)
+
+        // If still too big, Stage 2: /screen (72dpi)
+        if (compStats.size > MAX_SIZE) {
+          const aggressivePath = join(app.getPath('temp'), `comp_screen_${Date.now()}.pdf`)
+          let aggResult = await compressPdfInternal(currentPath, aggressivePath, '/screen')
+
+          if (aggResult === true && fs.existsSync(aggressivePath)) {
+            if (isTemp) fs.unlinkSync(currentPath)
+            if (fs.existsSync(compressedPath)) fs.unlinkSync(compressedPath)
+            currentPath = aggressivePath
+            isTemp = true
+          } else {
+            // Keep the ebook version if screen failed
+            if (isTemp) fs.unlinkSync(currentPath)
+            currentPath = compressedPath
+            isTemp = true
+          }
+        } else {
+          if (isTemp) fs.unlinkSync(currentPath)
+          currentPath = compressedPath
+          isTemp = true
+        }
+      }
+    }
+
+    return { path: currentPath, isTemp }
+  } catch (err) {
+    console.error('Error in prepareFileForSync:', err)
+    return { path: filePath, isTemp: false }
+  }
+}
+
+async function compressPdfInternal(filePath: string, outPath: string, quality: string = '/ebook'): Promise<boolean | 'FALLBACK'> {
+  const gsCommand = getBinaryPath('ghostscript')
+  return new Promise((resolve) => {
+    const args = [
+      '-sDEVICE=pdfwrite',
+      '-dCompatibilityLevel=1.4',
+      `-dPDFSETTINGS=${quality}`,
+      '-dNOPAUSE',
+      '-dBATCH',
+      `-sOutputFile=${outPath}`,
+      filePath
+    ]
+    const proc = spawn(gsCommand, args)
+    proc.on('error', (err: any) => {
+      if (err.code === 'ENOENT') resolve('FALLBACK')
+      else resolve(false)
+    })
+    proc.on('close', (code) => {
+      resolve(code === 0)
+    })
+  })
+}
+
+async function runWordFallback(filePath: string, outPath: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const scriptPath = join(app.getPath('temp'), `compress_fallback_${Date.now()}.ps1`)
+    const script = `
+      try {
+        $word = New-Object -ComObject Word.Application
+        $word.Visible = $false
+        $word.DisplayAlerts = 0
+        $doc = $word.Documents.Open("${filePath.replace(/"/g, '`"')}", $false, $true)
+        $doc.ExportAsFixedFormat("${outPath.replace(/"/g, '`"')}", 17, $false, 0)
+        $doc.Close(0)
+        $word.Quit()
+        Write-Output "success"
+      } catch {
+        if ($word) { $word.Quit() }
+        Write-Output "error"
+      }
+    `
+    fs.writeFileSync(scriptPath, script, 'utf8')
+    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
+      if (fs.existsSync(scriptPath)) fs.unlinkSync(scriptPath)
+      resolve(!err && stdout.includes("success"))
+    })
+  })
+}
+
+async function convertToPdfInternal(filePath: string, outPath: string): Promise<boolean> {
+  const ext = extname(filePath).toLowerCase().replace('.', '')
   let script = ""
   const escapedIn = filePath.replace(/"/g, '`"')
   const escapedOut = outPath.replace(/"/g, '`"')
 
-  if (['doc', 'docx'].includes(ext || '')) {
+  if (['doc', 'docx'].includes(ext)) {
     script = `
       try {
         $word = New-Object -ComObject Word.Application
-        if ($null -eq $word) { throw "Word not found" }
         $word.Visible = $false
         $doc = $word.Documents.Open("${escapedIn}")
-        if ($null -eq $doc) { throw "Failed to open document" }
         $doc.ExportAsFixedFormat("${escapedOut}", 17)
         $doc.Close(0)
         $word.Quit()
         Write-Output "success"
       } catch { 
-        Write-Output "Error: $($_.Exception.Message)"
         if ($word) { $word.Quit() }
+        Write-Output "error"
       }
     `
-  } else if (['xls', 'xlsx'].includes(ext || '')) {
+  } else if (['xls', 'xlsx'].includes(ext)) {
     script = `
       try {
         $excel = New-Object -ComObject Excel.Application
-        if ($null -eq $excel) { throw "Excel not found" }
         $excel.Visible = $false
         $wb = $excel.Workbooks.Open("${escapedIn}")
-        if ($null -eq $wb) { throw "Failed to open workbook" }
         $wb.ExportAsFixedFormat(0, "${escapedOut}")
         $wb.Close($false)
         $excel.Quit()
         Write-Output "success"
       } catch { 
-        Write-Output "Error: $($_.Exception.Message)"
         if ($excel) { $excel.Quit() }
+        Write-Output "error"
       }
     `
-  } else if (['ppt', 'pptx'].includes(ext || '')) {
+  } else if (['ppt', 'pptx'].includes(ext)) {
     script = `
       try {
         $ppt = New-Object -ComObject PowerPoint.Application
-        if ($null -eq $ppt) { throw "PowerPoint not found" }
         $pres = $ppt.Presentations.Open("${escapedIn}", -1, 0, 0)
-        if ($null -eq $pres) { throw "Failed to open presentation" }
         $pres.SaveAs("${escapedOut}", 32)
         $pres.Close()
         $ppt.Quit()
         Write-Output "success"
       } catch { 
-        Write-Output "Error: $($_.Exception.Message)"
         if ($ppt) { $ppt.Quit() }
+        Write-Output "error"
       }
     `
   }
@@ -644,13 +728,8 @@ ipcMain.handle('convert-to-pdf', async (_event, filePath: string) => {
 
   return new Promise((resolve) => {
     exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`, (err, stdout) => {
-      fs.unlinkSync(scriptPath) // Clean up
-      if (err || !stdout.includes("success")) {
-        console.error("Conversion failed:", stdout)
-        resolve(false)
-      } else {
-        resolve(true)
-      }
+      if (fs.existsSync(scriptPath)) fs.unlinkSync(scriptPath)
+      resolve(!err && stdout.includes("success"))
     })
   })
-})
+}

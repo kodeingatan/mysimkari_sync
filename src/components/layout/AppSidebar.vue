@@ -1,7 +1,7 @@
 <template>
-  <aside class="w-72 bg-surface border-r border-gray-200 flex flex-col">
+  <aside :style="{ width: width + 'px' }" class="bg-surface border-r border-gray-200 flex flex-col shrink-0">
     <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-      <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wider">Explorer</h2>
+      <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wider overflow-hidden whitespace-nowrap">Explorer</h2>
       <div class="flex items-center gap-1">
         <button @click="$emit('refresh')"
           class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="Refresh">
@@ -66,6 +66,7 @@ export interface TreeNode {
 const props = defineProps<{
   files: TreeNode[]
   selectedFile: TreeNode | null
+  width: number
 }>()
 
 const emit = defineEmits<{
