@@ -73,6 +73,7 @@ const emit = defineEmits<{
   (e: 'select-folder'): void
   (e: 'select-file', file: TreeNode): void
   (e: 'refresh'): void
+  (e: 'show-toast', message: string, type: 'success' | 'error' | 'info'): void
 }>()
 
 // Context Menu State
@@ -137,10 +138,10 @@ const getMenuItems = (node: TreeNode, apps: string[] = []): MenuItem[] => {
           // @ts-ignore
           const success = await window.ipcRenderer.invoke('compress-pdf', node.path)
           if (success) {
-            alert('PDF compressed successfully!')
+            emit('show-toast', 'PDF compressed successfully!', 'success')
             emit('refresh')
           } else {
-            alert('Failed to compress PDF.')
+            emit('show-toast', 'Failed to compress PDF.', 'error')
           }
         }
       })
@@ -153,10 +154,10 @@ const getMenuItems = (node: TreeNode, apps: string[] = []): MenuItem[] => {
           // @ts-ignore
           const success = await window.ipcRenderer.invoke('convert-to-pdf', node.path)
           if (success) {
-            alert('Converted to PDF successfully!')
+            emit('show-toast', 'Converted to PDF successfully!', 'success')
             emit('refresh')
           } else {
-            alert('Failed to convert to PDF. Make sure Microsoft Office is installed.')
+            emit('show-toast', 'Failed to convert to PDF. Make sure Microsoft Office is installed.', 'error')
           }
         }
       })

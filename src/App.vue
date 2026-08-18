@@ -5,7 +5,7 @@
     <div class="flex flex-1 overflow-hidden relative" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
       <!-- Sidebar / Tree View -->
       <AppSidebar :files="files" :selectedFile="selectedFile" :width="sidebarWidth" @select-folder="selectFolder" @select-file="selectFile"
-        @refresh="refreshFolder" />
+        @refresh="refreshFolder" @show-toast="showToast" />
 
       <!-- Resizer Divider -->
       <div 
@@ -180,12 +180,36 @@
 
       </main>
     </div>
+
+    <!-- Toast Notification -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="translate-y-4 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-4 opacity-0"
+    >
+      <div v-if="toastMessage"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 backdrop-blur-sm"
+        :class="{
+          'bg-green-500/90 text-white': toastType === 'success',
+          'bg-red-500/90 text-white': toastType === 'error',
+          'bg-gray-800/90 text-white': toastType === 'info'
+        }"
+      >
+        <IoOutlineCheckmarkCircle v-if="toastType === 'success'" class="text-lg" />
+        <IoOutlineWarning v-else-if="toastType === 'error'" class="text-lg" />
+        <IoOutlineInformationCircle v-else class="text-lg" />
+        {{ toastMessage }}
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { IoOutlineDocument, IoOutlineSync, IoOutlineCloudUpload, IoOutlineCalendar } from '@kalimahapps/vue-icons'
+import { IoOutlineDocument, IoOutlineSync, IoOutlineCloudUpload, IoOutlineCalendar, IoOutlineCheckmarkCircle, IoOutlineWarning, IoOutlineInformationCircle } from '@kalimahapps/vue-icons'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppSidebar, { TreeNode } from './components/layout/AppSidebar.vue'
 import StatusBadge from './components/ui/StatusBadge.vue'
@@ -230,6 +254,20 @@ const onMouseUp = () => {
     // @ts-ignore
     window.ipcRenderer.invoke('save-setting', 'sidebarWidth', sidebarWidth.value.toString())
   }
+}
+
+// Toast notification
+const toastMessage = ref('')
+const toastType = ref<'success' | 'error' | 'info'>('info')
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  toastMessage.value = message
+  toastType.value = type
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastMessage.value = ''
+  }, 3000)
 }
 
 const formOptions = ref({
@@ -332,7 +370,7 @@ const selectFolder = async () => {
       window.ipcRenderer.invoke('save-setting', 'lastFolder', result.folderPath)
     }
   } else {
-    alert("Folder selection will be available in Electron app")
+    showToast("Folder selection will be available in Electron app", "info")
   }
 }
 
@@ -421,10 +459,10 @@ const login = async () => {
       isLoggedIn.value = true
       fetchOptions()
     } else {
-      alert("Login failed or cancelled.")
+      showToast("Login failed or cancelled.", "error")
     }
   } else {
-    alert("Login flow will open an external browser window in Electron app")
+    showToast("Login flow will open an external browser window in Electron app", "info")
     isLoggedIn.value = true
     fetchOptions()
   }
@@ -444,7 +482,7 @@ const logout = async () => {
 const syncData = async () => {
   if (!selectedFile.value) return
   if (!isLoggedIn.value) {
-    alert("Please login first!")
+    showToast("Please login first!", "error")
     return
   }
 
@@ -458,17 +496,17 @@ const syncData = async () => {
     if (success) {
       selectedFile.value.status = 'synced'
       selectedFile.value.parsedData = { ...formData.value }
-      alert("Successfully synced to MySimkari!")
+      showToast("Successfully synced to MySimkari!", "success")
       fetchSyncHistory()
     } else {
-      alert("Failed to sync! Please check your connection and login status.")
+      showToast("Failed to sync! Please check your connection and login status.", "error")
     }
   } else {
     setTimeout(() => {
       selectedFile.value!.status = 'synced'
       selectedFile.value!.parsedData = { ...formData.value }
       isSyncing.value = false
-      alert("Successfully synced to MySimkari!")
+      showToast("Successfully synced to MySimkari!", "success")
     }, 1500)
   }
 }

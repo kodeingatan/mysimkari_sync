@@ -44,10 +44,10 @@
           v-for="option in filteredOptions" 
           :key="option.value"
           @click="selectOption(option)"
-          class="px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 transition-colors flex items-center justify-between group"
+          class="px-4 py-2.5 text-xs cursor-pointer hover:bg-blue-50 transition-colors flex items-start justify-between gap-2 leading-relaxed"
           :class="{ 'bg-blue-50 text-primary font-medium': option.value === modelValue }"
         >
-          <span class="truncate pr-4">{{ option.label }}</span>
+          <span class="break-words whitespace-normal flex-1">{{ option.label }}</span>
           <svg v-if="option.value === modelValue" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary shrink-0" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
