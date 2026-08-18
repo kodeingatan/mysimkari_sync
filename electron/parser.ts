@@ -8,6 +8,7 @@ export interface ParsedData {
   name: string
   description: string
   date: string
+  rawText: string
 }
 
 export async function parseDocument(filePath: string, fileType: string): Promise<ParsedData> {
@@ -49,10 +50,11 @@ export async function parseDocument(filePath: string, fileType: string): Promise
     console.error(`Error parsing ${filePath}:`, error)
   }
 
-  return extractInfoFromText(text)
+  const info = extractInfoFromText(text)
+  return { ...info, rawText: text.substring(0, 5000) }
 }
 
-function extractInfoFromText(text: string): ParsedData {
+function extractInfoFromText(text: string): { name: string, description: string, date: string } {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
   
   // Simple heuristic for Name: First non-empty line, or 'Unknown Activity'

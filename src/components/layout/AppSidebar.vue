@@ -3,6 +3,10 @@
     <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
       <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wider overflow-hidden whitespace-nowrap">Explorer</h2>
       <div class="flex items-center gap-1">
+        <button @click="$emit('open-ai-settings')"
+          class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="AI Settings">
+          <IoOutlineCog class="text-lg" />
+        </button>
         <button @click="$emit('refresh')"
           class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="Refresh">
           <IoOutlineRefresh class="text-lg" />
@@ -42,7 +46,8 @@ import {
   IoOutlineFolderOpen,
   IoOutlineResize,
   IoOutlineDocumentText,
-  IoOutlineRefresh
+  IoOutlineRefresh,
+  IoOutlineCog
 } from '@kalimahapps/vue-icons'
 import AppSidebarNode from './AppSidebarNode.vue'
 import ContextMenu, { MenuItem } from '../ui/ContextMenu.vue'
@@ -74,6 +79,7 @@ const emit = defineEmits<{
   (e: 'select-file', file: TreeNode): void
   (e: 'refresh'): void
   (e: 'show-toast', message: string, type: 'success' | 'error' | 'info'): void
+  (e: 'open-ai-settings'): void
 }>()
 
 // Context Menu State

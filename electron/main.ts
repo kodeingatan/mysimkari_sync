@@ -35,6 +35,8 @@ function initDB() {
       status TEXT
     );
   `)
+  // Add raw_text column if missing (for existing DBs)
+  try { db.exec(`ALTER TABLE documents ADD COLUMN raw_text TEXT`) } catch {}
 }
 
 
@@ -149,8 +151,8 @@ function readDirRecursive(dirPath: string): any[] {
 
 ipcMain.handle('parse-file', async (_event, path: string, type: string) => {
   const parsedData = await parseDocument(path, type)
-  db?.prepare('UPDATE documents SET parsed_name = ?, parsed_desc = ?, parsed_date = ?, status = ? WHERE path = ?').run(
-    parsedData.name, parsedData.description, parsedData.date, 'ready', path
+  db?.prepare('UPDATE documents SET parsed_name = ?, parsed_desc = ?, parsed_date = ?, raw_text = ?, status = ? WHERE path = ?').run(
+    parsedData.name, parsedData.description, parsedData.date, parsedData.rawText || '', 'ready', path
   )
   return parsedData
 })
@@ -554,6 +556,214 @@ ipcMain.handle('convert-to-pdf', async (_event, filePath: string) => {
   const name = basename(filePath, extname(filePath))
   const outPath = join(dir, `${name}_outpdf.pdf`)
   return await convertToPdfInternal(filePath, outPath)
+})
+
+// --- AI Settings & Generation ---
+
+ipcMain.handle('save-ai-settings', (_event, settings: {
+  provider: string
+  apiKey: string
+  model: string
+  baseUrl: string
+  systemPrompt: string
+  temperature: number
+  maxTokens: number
+}) => {
+  const upsert = db?.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)')
+  upsert?.run('ai_provider', settings.provider)
+  upsert?.run('ai_api_key', settings.apiKey)
+  upsert?.run('ai_model', settings.model)
+  upsert?.run('ai_base_url', settings.baseUrl)
+  upsert?.run('ai_system_prompt', settings.systemPrompt)
+  upsert?.run('ai_temperature', settings.temperature.toString())
+  upsert?.run('ai_max_tokens', settings.maxTokens.toString())
+  return true
+})
+
+ipcMain.handle('get-ai-settings', () => {
+  const get = (key: string) => {
+    const row = db?.prepare('SELECT value FROM settings WHERE key = ?').get(key) as any
+    return row ? row.value : ''
+  }
+  return {
+    provider: get('ai_provider'),
+    apiKey: get('ai_api_key'),
+    model: get('ai_model'),
+    baseUrl: get('ai_base_url'),
+    systemPrompt: get('ai_system_prompt'),
+    temperature: parseFloat(get('ai_temperature') || '0.7'),
+    maxTokens: parseInt(get('ai_max_tokens') || '1024')
+  }
+})
+
+ipcMain.handle('test-ai-connection', async (_event, settings: {
+  provider: string
+  apiKey: string
+  model: string
+  baseUrl: string
+}) => {
+  try {
+    if (settings.provider === 'gemini') {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${settings.apiKey}`)
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        return { success: false, error: err?.error?.message || `HTTP ${res.status}` }
+      }
+      const data = await res.json() as any
+      const models = (data.models || []).map((m: any) => m.name.replace('models/', ''))
+      return { success: true, models }
+    } else {
+      // OpenAI-compatible
+      const baseUrl = settings.baseUrl.replace(/\/+$/, '')
+      const res = await fetch(`${baseUrl}/v1/models`, {
+        headers: { 'Authorization': `Bearer ${settings.apiKey}` }
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        return { success: false, error: err?.error?.message || `HTTP ${res.status}` }
+      }
+      const data = await res.json() as any
+      const models = (data.data || []).map((m: any) => m.id)
+      return { success: true, models }
+    }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Connection failed' }
+  }
+})
+
+ipcMain.handle('generate-ai', async (_event, payload: {
+  provider: string
+  apiKey: string
+  model: string
+  baseUrl: string
+  systemPrompt: string
+  temperature: number
+  maxTokens: number
+  fileText: string
+  tipeKegiatan: string
+  kategoriKegiatan: string
+  indikatorKinerja: string
+  sasaranKinerja: string
+  target: 'name' | 'description' | 'both'
+}) => {
+  try {
+    const contextBlock = `Konteks Form:
+- Tipe Kegiatan: ${payload.tipeKegiatan || '(belum dipilih)'}
+- Kategori: ${payload.kategoriKegiatan || '(belum dipilih)'}
+- Indikator: ${payload.indikatorKinerja || '(belum dipilih)'}
+- Sasaran: ${payload.sasaranKinerja || '(belum dipilih)'}`
+
+    let userPrompt = ''
+    if (payload.target === 'name') {
+      userPrompt = `${contextBlock}
+
+Isi Dokumen:
+${payload.fileText.substring(0, 4000)}
+
+Buatkan nama kegiatan yang singkat dan formal (maksimal 100 karakter). Tulis hanya nama kegiatannya saja, tanpa penjelasan tambahan.`
+    } else if (payload.target === 'description') {
+      userPrompt = `${contextBlock}
+
+Isi Dokumen:
+${payload.fileText.substring(0, 4000)}
+
+Buatkan deskripsi kegiatan yang detail dan formal (maksimal 300 karakter). Tulis hanya deskripsi kegiatannya saja, tanpa penjelasan tambahan.`
+    } else {
+      userPrompt = `${contextBlock}
+
+Isi Dokumen:
+${payload.fileText.substring(0, 4000)}
+
+Buatkan nama kegiatan (maksimal 100 karakter) dan deskripsi kegiatan (maksimal 300 karakter). Format jawaban:
+NAMA: [nama kegiatan]
+DESKRIPSI: [deskripsi kegiatan]`
+    }
+
+    const defaultSystem = `Saya adalah seorang pegawai administrasi di Kejaksaan Negeri PIDIE. Bantu saya menyusun format berikut berdasarkan dokumen yang saya berikan.`
+    const systemPrompt = payload.systemPrompt || defaultSystem
+
+    let result: { name?: string, description?: string } = {}
+
+    if (payload.provider === 'gemini') {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${payload.model}:generateContent?key=${payload.apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+              temperature: payload.temperature,
+              maxOutputTokens: payload.maxTokens
+            }
+          })
+        }
+      )
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        return { error: err?.error?.message || `Gemini API error: ${res.status}` }
+      }
+      const data = await res.json() as any
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      result = parseAiResponse(text, payload.target)
+    } else {
+      // OpenAI-compatible
+      const baseUrl = payload.baseUrl.replace(/\/+$/, '')
+      const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${payload.apiKey}`
+        },
+        body: JSON.stringify({
+          model: payload.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: payload.temperature,
+          max_tokens: payload.maxTokens
+        })
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        return { error: err?.error?.message || `API error: ${res.status}` }
+      }
+      const data = await res.json() as any
+      const text = data?.choices?.[0]?.message?.content || ''
+      result = parseAiResponse(text, payload.target)
+    }
+
+    return result
+  } catch (err: any) {
+    return { error: err.message || 'AI generation failed' }
+  }
+})
+
+function parseAiResponse(text: string, target: string): { name?: string, description?: string } {
+  const cleaned = text.trim()
+  if (target === 'both') {
+    const nameMatch = cleaned.match(/NAMA:\s*(.+)/i)
+    const descMatch = cleaned.match(/DESKRIPSI:\s*(.+)/i)
+    return {
+      name: nameMatch ? nameMatch[1].trim().substring(0, 100) : cleaned.substring(0, 100),
+      description: descMatch ? descMatch[1].trim().substring(0, 300) : cleaned.substring(0, 300)
+    }
+  }
+  if (target === 'name') {
+    return { name: cleaned.substring(0, 100) }
+  }
+  return { description: cleaned.substring(0, 300) }
+}
+
+ipcMain.handle('get-file-text', async (_event, filePath: string) => {
+  try {
+    const row = db?.prepare('SELECT raw_text FROM documents WHERE path = ?').get(filePath) as any
+    return row?.raw_text || ''
+  } catch {
+    return ''
+  }
 })
 
 // --- Internal Helper Functions ---

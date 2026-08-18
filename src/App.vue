@@ -2,17 +2,16 @@
   <div class="h-screen w-screen flex flex-col bg-background text-gray-800">
     <AppHeader :isLoggedIn="isLoggedIn" @login="login" @logout="logout" />
 
-    <div class="flex flex-1 overflow-hidden relative" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
+    <div class="flex flex-1 overflow-hidden relative" @mousemove="onMouseMove" @mouseup="onMouseUp"
+      @mouseleave="onMouseUp">
       <!-- Sidebar / Tree View -->
-      <AppSidebar :files="files" :selectedFile="selectedFile" :width="sidebarWidth" @select-folder="selectFolder" @select-file="selectFile"
-        @refresh="refreshFolder" @show-toast="showToast" />
+      <AppSidebar :files="files" :selectedFile="selectedFile" :width="sidebarWidth" @select-folder="selectFolder"
+        @select-file="selectFile" @refresh="refreshFolder" @show-toast="showToast" @open-ai-settings="openAiSettings" />
 
       <!-- Resizer Divider -->
-      <div 
+      <div
         class="w-1 hover:w-1.5 bg-transparent hover:bg-primary/30 cursor-col-resize z-10 transition-all duration-200 absolute"
-        :style="{ left: sidebarWidth - 2 + 'px', height: '100%' }"
-        @mousedown="onMouseDown"
-      ></div>
+        :style="{ left: sidebarWidth - 2 + 'px', height: '100%' }" @mousedown="onMouseDown"></div>
 
       <!-- Main Content -->
       <main class="flex-1 bg-gray-50 flex flex-col p-8 overflow-y-auto">
@@ -61,16 +60,35 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Kegiatan</label>
-                <input v-model="formData.name" type="text"
-                  class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm"
-                  placeholder="E.g. Sosialisasi Peraturan...">
+                <div class="relative">
+                  <input v-model="formData.name" type="text"
+                    class="w-full px-4 py-2 pr-28 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm"
+                    placeholder="E.g. Sosialisasi Peraturan...">
+                  <button v-if="aiSettings.apiKey" @click="generateAiContent('name')" :disabled="isGeneratingName"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[10px] font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-all flex items-center gap-1 whitespace-nowrap"
+                    :class="{ 'opacity-50 cursor-not-allowed': isGeneratingName }">
+                    <IoOutlineSparkles v-if="!isGeneratingName" class="text-xs" />
+                    <IoOutlineSync v-else class="text-xs animate-spin" />
+                    {{ isGeneratingName ? 'Generating...' : 'Generate AI' }}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Kegiatan</label>
-                <textarea v-model="formData.description" rows="3"
-                  class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none text-sm"
-                  placeholder="Details about the activity..."></textarea>
+                <div class="relative">
+                  <textarea v-model="formData.description" rows="3"
+                    class="w-full px-4 py-2 pr-28 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none text-sm"
+                    placeholder="Details about the activity..."></textarea>
+                  <button v-if="aiSettings.apiKey" @click="generateAiContent('description')"
+                    :disabled="isGeneratingDesc"
+                    class="absolute right-2 top-2 px-2.5 py-1 text-[10px] font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-all flex items-center gap-1 whitespace-nowrap"
+                    :class="{ 'opacity-50 cursor-not-allowed': isGeneratingDesc }">
+                    <IoOutlineSparkles v-if="!isGeneratingDesc" class="text-xs" />
+                    <IoOutlineSync v-else class="text-xs animate-spin" />
+                    {{ isGeneratingDesc ? 'Generating...' : 'Generate AI' }}
+                  </button>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
@@ -85,6 +103,20 @@
                     class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm">
                 </div>
               </div>
+            </div>
+
+            <div v-if="aiSettings.apiKey && selectedFile.status !== 'unprocessed'"
+              class="mt-6 pt-4 border-t border-gray-100">
+              <button @click="generateAll" :disabled="isGeneratingAll"
+                class="w-full px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-primary to-blue-500 hover:from-blue-600 hover:to-blue-600 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
+                :class="{ 'opacity-50 cursor-not-allowed': isGeneratingAll }">
+                <IoOutlineSparkles v-if="!isGeneratingAll" class="text-base" />
+                <IoOutlineSync v-else class="text-base animate-spin" />
+                {{ isGeneratingAll ? 'Generating All Fields...' : 'Generate All with AI' }}
+              </button>
+              <p class="text-[10px] text-gray-400 text-center mt-1.5">
+                Generate Nama Kegiatan &amp; Deskripsi Kegiatan dari file yang dipilih
+              </p>
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
@@ -182,38 +214,36 @@
     </div>
 
     <!-- Toast Notification -->
-    <Transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="translate-y-4 opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="translate-y-0 opacity-100"
-      leave-to-class="translate-y-4 opacity-0"
-    >
+    <Transition enter-active-class="transition duration-300 ease-out" enter-from-class="translate-y-4 opacity-0"
+      enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-200 ease-in"
+      leave-from-class="translate-y-0 opacity-100" leave-to-class="translate-y-4 opacity-0">
       <div v-if="toastMessage"
         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 backdrop-blur-sm"
         :class="{
           'bg-green-500/90 text-white': toastType === 'success',
           'bg-red-500/90 text-white': toastType === 'error',
           'bg-gray-800/90 text-white': toastType === 'info'
-        }"
-      >
+        }">
         <IoOutlineCheckmarkCircle v-if="toastType === 'success'" class="text-lg" />
         <IoOutlineWarning v-else-if="toastType === 'error'" class="text-lg" />
         <IoOutlineInformationCircle v-else class="text-lg" />
         {{ toastMessage }}
       </div>
     </Transition>
+
+    <!-- AI Settings Modal -->
+    <AiSettingsModal v-model="showAiSettings" @saved="() => showToast('AI settings saved!', 'success')" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { IoOutlineDocument, IoOutlineSync, IoOutlineCloudUpload, IoOutlineCalendar, IoOutlineCheckmarkCircle, IoOutlineWarning, IoOutlineInformationCircle } from '@kalimahapps/vue-icons'
+import { IoOutlineDocument, IoOutlineSync, IoOutlineCloudUpload, IoOutlineCalendar, IoOutlineCheckmarkCircle, IoOutlineWarning, IoOutlineInformationCircle, IoOutlineSparkles } from '@kalimahapps/vue-icons'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppSidebar, { TreeNode } from './components/layout/AppSidebar.vue'
 import StatusBadge from './components/ui/StatusBadge.vue'
 import SearchSelectItem from './components/ui/SearchSelectItem.vue'
+import AiSettingsModal from './components/ui/AiSettingsModal.vue'
 
 // State
 const files = ref<TreeNode[]>([])
@@ -247,7 +277,7 @@ const onMouseUp = () => {
   isResizing.value = false
   document.body.style.cursor = 'default'
   document.body.style.userSelect = 'auto'
-  
+
   // Save width to settings
   // @ts-ignore
   if (window.ipcRenderer) {
@@ -269,6 +299,22 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
     toastMessage.value = ''
   }, 3000)
 }
+
+// AI Settings
+const showAiSettings = ref(false)
+const aiSettings = ref({
+  provider: '',
+  apiKey: '',
+  model: '',
+  baseUrl: '',
+  systemPrompt: '',
+  temperature: 0.7,
+  maxTokens: 1024
+})
+const isGeneratingName = ref(false)
+const isGeneratingDesc = ref(false)
+const isGeneratingAll = ref(false)
+const fileRawText = ref('')
 
 const formOptions = ref({
   tipe: [] as any[],
@@ -304,8 +350,6 @@ const fetchSyncHistory = async () => {
     isLoadingHistory.value = true
     // @ts-ignore
     const history = await window.ipcRenderer.invoke('get-sync-history')
-    console.log({ history })
-    console.log({ history })
     if (history) {
       syncHistory.value = history
     }
@@ -332,7 +376,7 @@ onMounted(async () => {
   if (window.ipcRenderer) {
     // @ts-ignore
     isLoggedIn.value = await window.ipcRenderer.invoke('check-session')
-    
+
     // Load last width
     // @ts-ignore
     const savedWidth = await window.ipcRenderer.invoke('get-setting', 'sidebarWidth')
@@ -352,6 +396,11 @@ onMounted(async () => {
       fetchOptions()
       fetchSyncHistory()
     }
+
+    // Load AI settings
+    // @ts-ignore
+    const aiCfg = await window.ipcRenderer.invoke('get-ai-settings')
+    if (aiCfg) aiSettings.value = aiCfg
   }
 })
 
@@ -364,7 +413,7 @@ const selectFolder = async () => {
       files.value = result.fileTree
       currentFolderPath.value = result.folderPath
       selectedFile.value = null
-      
+
       // Save last folder
       // @ts-ignore
       window.ipcRenderer.invoke('save-setting', 'lastFolder', result.folderPath)
@@ -428,6 +477,8 @@ const selectFile = async (file: TreeNode) => {
       // @ts-ignore
       const parsedData = await window.ipcRenderer.invoke('parse-file', file.path, file.type)
       formData.value = { ...formData.value, ...parsedData, date: mtime || parsedData.date || '' }
+
+      fileRawText.value = parsedData.rawText || ''
       file.status = 'ready'
       file.parsedData = { ...parsedData, date: formData.value.date }
     } else {
@@ -439,6 +490,12 @@ const selectFile = async (file: TreeNode) => {
     }
   } else if (file.parsedData) {
     formData.value = { ...formData.value, ...file.parsedData, date: mtime || (file.parsedData as any).date || '' }
+    // @ts-ignore
+    if (window.ipcRenderer) {
+      // @ts-ignore
+      const rawText = await window.ipcRenderer.invoke('get-file-text', file.path)
+      fileRawText.value = rawText || ''
+    }
   }
 }
 
@@ -477,6 +534,108 @@ const logout = async () => {
   } else {
     isLoggedIn.value = false
   }
+}
+
+const generateAiContent = async (target: 'name' | 'description' | 'both') => {
+  if (!selectedFile.value) return
+  if (!aiSettings.value.apiKey) {
+    showToast("Please configure AI settings first!", "error")
+    showAiSettings.value = true
+    return
+  }
+  if (!fileRawText.value && selectedFile.value) {
+    // @ts-ignore
+    if (window.ipcRenderer) {
+      // @ts-ignore
+      const rawText = await window.ipcRenderer.invoke('get-file-text', selectedFile.value.path)
+      fileRawText.value = rawText || ''
+    }
+  }
+  if (!fileRawText.value) {
+    showToast("No file text available. Select a file first.", "error")
+    return
+  }
+
+  if (target === 'name') isGeneratingName.value = true
+  if (target === 'description') isGeneratingDesc.value = true
+
+  try {
+    // @ts-ignore
+    const result = await window.ipcRenderer.invoke('generate-ai', {
+      ...aiSettings.value,
+      fileText: fileRawText.value,
+      tipeKegiatan: formData.value.tipe_kegiatan,
+      kategoriKegiatan: formData.value.kaitan_kegiatan,
+      indikatorKinerja: formData.value.id_indikator,
+      sasaranKinerja: formData.value.sasaran_kegiatan,
+      target
+    })
+
+    if (result.error) {
+      showToast(result.error, "error")
+    } else {
+      if (result.name) formData.value.name = result.name
+      if (result.description) formData.value.description = result.description
+      showToast("Generated with AI!", "success")
+    }
+  } catch {
+    showToast("Failed to generate with AI", "error")
+  }
+
+  if (target === 'name') isGeneratingName.value = false
+  if (target === 'description') isGeneratingDesc.value = false
+}
+
+const openAiSettings = () => {
+  showAiSettings.value = true
+}
+
+const generateAll = async () => {
+  if (!selectedFile.value) return
+  if (!aiSettings.value.apiKey) {
+    showToast("Please configure AI settings first!", "error")
+    showAiSettings.value = true
+    return
+  }
+  if (!fileRawText.value) {
+    // @ts-ignore
+    if (window.ipcRenderer) {
+      // @ts-ignore
+      const rawText = await window.ipcRenderer.invoke('get-file-text', selectedFile.value.path)
+      fileRawText.value = rawText || ''
+    }
+  }
+  if (!fileRawText.value) {
+    showToast("No file text available. Select a file first.", "error")
+    return
+  }
+
+  isGeneratingAll.value = true
+
+  try {
+    // @ts-ignore
+    const result = await window.ipcRenderer.invoke('generate-ai', {
+      ...aiSettings.value,
+      fileText: fileRawText.value,
+      tipeKegiatan: formData.value.tipe_kegiatan,
+      kategoriKegiatan: formData.value.kaitan_kegiatan,
+      indikatorKinerja: formData.value.id_indikator,
+      sasaranKinerja: formData.value.sasaran_kegiatan,
+      target: 'both'
+    })
+
+    if (result.error) {
+      showToast(result.error, "error")
+    } else {
+      if (result.name) formData.value.name = result.name
+      if (result.description) formData.value.description = result.description
+      showToast("All fields generated with AI!", "success")
+    }
+  } catch {
+    showToast("Failed to generate with AI", "error")
+  }
+
+  isGeneratingAll.value = false
 }
 
 const syncData = async () => {
