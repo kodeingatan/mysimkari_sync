@@ -225,6 +225,7 @@ const onMouseUp = () => {
   document.body.style.userSelect = 'auto'
   
   // Save width to settings
+  // @ts-ignore
   if (window.ipcRenderer) {
     // @ts-ignore
     window.ipcRenderer.invoke('save-setting', 'sidebarWidth', sidebarWidth.value.toString())

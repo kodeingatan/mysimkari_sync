@@ -63,7 +63,7 @@ export interface TreeNode {
   }
 }
 
-const props = defineProps<{
+defineProps<{
   files: TreeNode[]
   selectedFile: TreeNode | null
   width: number
