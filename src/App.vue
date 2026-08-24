@@ -359,7 +359,6 @@ const fetchSyncHistory = async () => {
 }
 
 const filteredSyncHistory = computed(() => {
-  console.log('formData.value.date', formData.value.date)
   if (!formData.value.date) return syncHistory.value
 
   // Convert YYYY-MM-DD (from input date) to DD-MM-YYYY (from API)
@@ -454,8 +453,6 @@ const refreshFolder = async () => {
 
 const selectFile = async (file: TreeNode) => {
 
-
-
   let size = 0
   let mtime = ''
   // @ts-ignore
@@ -477,6 +474,7 @@ const selectFile = async (file: TreeNode) => {
     if (window.ipcRenderer) {
       // @ts-ignore
       const parsedData = await window.ipcRenderer.invoke('parse-file', file.path, file.type)
+      
       formData.value = { ...formData.value, ...parsedData, date: mtime || parsedData.date || '' }
 
       fileRawText.value = parsedData.rawText || ''
