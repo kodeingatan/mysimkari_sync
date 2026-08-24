@@ -879,15 +879,9 @@ function parseAiResponse(
 
 ipcMain.handle("get-file-text", async (_event, filePath: string) => {
   try {
-    const fileType = path.extname(filePath).toLowerCase().substring(1); // get extension without dot
-    const parser = await parseDocument(filePath, fileType); // Assuming parseDocument can handle different file types
-
-    console.log({ parser });
-
-    const row = db
-      ?.prepare("SELECT raw_text FROM documents WHERE path = ?")
-      .get(filePath) as any;
-    return row?.raw_text || "";
+    const fileType = path.extname(filePath).toLowerCase().substring(1);
+    const parsed = await parseDocument(filePath, fileType);
+    return parsed.rawText || "";
   } catch {
     return "";
   }
