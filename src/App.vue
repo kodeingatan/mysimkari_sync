@@ -126,7 +126,8 @@
               </button>
               <button @click="syncData"
                 class="px-5 py-2 text-sm font-medium text-white bg-primary hover:bg-blue-600 rounded-lg shadow-sm shadow-blue-200 transition-all active:scale-95 flex items-center gap-2"
-                :disabled="isSyncing || selectedFile.status === 'synced'">
+                :disabled="isSyncing">
+                <!-- selectedFile.status === 'synced' -->
                 <IoOutlineSync v-if="isSyncing" class="animate-spin h-4 w-4 text-white" />
                 <IoOutlineCloudUpload v-else class="text-lg" />
                 {{ isSyncing ? 'Syncing...' : 'Save & Sync' }}
@@ -639,6 +640,7 @@ const generateAll = async () => {
 }
 
 const syncData = async () => {
+
   if (!selectedFile.value) return
   if (!isLoggedIn.value) {
     showToast("Please login first!", "error")
