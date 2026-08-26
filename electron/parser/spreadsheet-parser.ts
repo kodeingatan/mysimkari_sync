@@ -8,8 +8,8 @@ export async function parseSpreadsheet(filePath: string): Promise<string> {
     const worksheet = workbook.Sheets[sheetName]
     if (!worksheet) continue
 
-    const sheetText = xlsx.utils.sheet_to_txt(worksheet)
-    sheetTexts.push(`=== SHEET: ${sheetName} ===\n${sheetText}`)
+    const csv = xlsx.utils.sheet_to_csv(worksheet)
+    sheetTexts.push(`=== SHEET: ${sheetName} ===\n${csv}`)
   }
 
   return sheetTexts.join('\n\n')

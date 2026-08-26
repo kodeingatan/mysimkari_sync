@@ -1,9 +1,10 @@
 import { ParsedData } from './parser/types'
-import { normalizeExt, extractInfoFromText, IMAGE_EXTS, OFFICE_EXTS, SPREADSHEET_EXTS, PRESENTATION_EXTS } from './parser/utils'
+import { normalizeExt, extractInfoFromText, IMAGE_EXTS, OFFICE_EXTS, SPREADSHEET_EXTS, PRESENTATION_EXTS, TEXT_EXTS } from './parser/utils'
 import { parsePdf } from './parser/pdf-parser'
 import { parseOffice } from './parser/office-parser'
 import { parseSpreadsheet } from './parser/spreadsheet-parser'
 import { parsePresentation } from './parser/presentation-parser'
+import { parseText } from './parser/text-parser'
 import { ocrImage } from './parser/image-ocr'
 
 export type { ParsedData } from './parser/types'
@@ -21,6 +22,8 @@ export async function parseDocument(filePath: string, fileType?: string): Promis
       text = await parseSpreadsheet(filePath)
     } else if (PRESENTATION_EXTS.includes(ext)) {
       text = await parsePresentation(filePath)
+    } else if (TEXT_EXTS.includes(ext)) {
+      text = await parseText(filePath)
     } else if (IMAGE_EXTS.includes(ext)) {
       text = await ocrImage(filePath)
     }

@@ -4,6 +4,7 @@ export const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'bmp', 'tiff', 'tif', 'webp', '
 export const OFFICE_EXTS = ['doc', 'docx']
 export const SPREADSHEET_EXTS = ['xls', 'xlsx']
 export const PRESENTATION_EXTS = ['ppt', 'pptx']
+export const TEXT_EXTS = ['txt']
 
 export function normalizeExt(filePath: string, fileType?: string): string {
   const ext = (fileType || path.extname(filePath)).toLowerCase().replace('.', '')
