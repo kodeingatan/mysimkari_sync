@@ -474,7 +474,7 @@ const selectFile = async (file: TreeNode) => {
     if (window.ipcRenderer) {
       // @ts-ignore
       const parsedData = await window.ipcRenderer.invoke('parse-file', file.path, file.type)
-      
+
       formData.value = { ...formData.value, ...parsedData, date: mtime || parsedData.date || '' }
 
       fileRawText.value = parsedData.rawText || ''
@@ -547,6 +547,9 @@ const generateAiContent = async (target: 'name' | 'description' | 'both') => {
     if (window.ipcRenderer) {
       // @ts-ignore
       const rawText = await window.ipcRenderer.invoke('get-file-text', selectedFile.value.path)
+
+      console.log({ rawText })
+
       fileRawText.value = rawText || ''
     }
   }
