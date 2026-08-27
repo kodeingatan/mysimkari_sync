@@ -698,9 +698,8 @@ ipcMain.handle(
   ) => {
     try {
       if (settings.provider === "gemini") {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models?key=${settings.apiKey}`,
-        );
+        const baseUrl = settings.baseUrl.replace(/\/+$/, "");
+        const res = await fetch(`${baseUrl}/models?key=${settings.apiKey}`);
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           return {
@@ -795,21 +794,18 @@ DESKRIPSI: [deskripsi kegiatan]`;
       let result: { name?: string; description?: string } = {};
 
       if (payload.provider === "gemini") {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${payload.model}:generateContent?key=${payload.apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: userPrompt }] }],
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              generationConfig: {
-                temperature: payload.temperature,
-                maxOutputTokens: payload.maxTokens,
-              },
-            }),
+        const baseUrl = payload.baseUrl.replace(/\/+$/, "");
+        const res = await fetch(`${baseUrl}/interactions?key=${payload.apiKey}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": payload.apiKey,
           },
-        );
+          body: JSON.stringify({
+            model: payload.model,
+            input: userPrompt,
+          }),
+        });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           return {
@@ -817,7 +813,11 @@ DESKRIPSI: [deskripsi kegiatan]`;
           };
         }
         const data = (await res.json()) as any;
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        const text =
+          data?.output?.text ||
+          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          data?.response?.output?.text ||
+          "";
         result = parseAiResponse(text, payload.target);
       } else {
         // OpenAI-compatible
