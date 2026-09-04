@@ -553,6 +553,10 @@ const generateAiContent = async (target: 'name' | 'description' | 'both') => {
       fileRawText.value = rawText || ''
     }
   }
+
+  console.log({ fileRawText: fileRawText.value })
+
+
   if (!fileRawText.value) {
     showToast("No file text available. Select a file first.", "error")
     return

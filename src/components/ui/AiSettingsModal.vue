@@ -179,7 +179,7 @@ const emit = defineEmits<{
 const form = ref({
   provider: 'gemini',
   apiKey: '',
-  model: '',
+  model: 'gemini-3.7-flash',
   baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
   systemPrompt: '',
   temperature: 0.7,
@@ -209,7 +209,7 @@ const loadSettings = async () => {
       form.value = {
         provider,
         apiKey: settings.apiKey || '',
-        model: settings.model || '',
+        model: settings.model || (provider === 'gemini' ? 'gemini-3.7-flash' : ''),
         baseUrl: settings.baseUrl || (provider === 'gemini' ? 'https://generativelanguage.googleapis.com/v1beta' : 'https://api.openai.com'),
         systemPrompt: settings.systemPrompt || '',
         temperature: settings.temperature ?? 0.7,

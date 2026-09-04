@@ -1,7 +1,8 @@
 import * as xlsx from 'xlsx'
+import * as fs from 'fs'
 
 export async function parseSpreadsheet(filePath: string): Promise<string> {
-  const workbook = xlsx.readFile(filePath)
+  const workbook = xlsx.read(fs.readFileSync(filePath), { type: 'buffer' })
   const sheetTexts: string[] = []
 
   for (const sheetName of workbook.SheetNames) {

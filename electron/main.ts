@@ -698,8 +698,10 @@ ipcMain.handle(
   ) => {
     try {
       if (settings.provider === "gemini") {
-        const baseUrl = settings.baseUrl.replace(/\/+$/, "");
-        const res = await fetch(`${baseUrl}/models?key=${settings.apiKey}`);
+        const baseUrl = normalizeGeminiBaseUrl(settings.baseUrl);
+        const res = await fetch(`${baseUrl}/models`, {
+          headers: { "x-goog-api-key": settings.apiKey },
+        });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           return {
@@ -794,15 +796,15 @@ DESKRIPSI: [deskripsi kegiatan]`;
       let result: { name?: string; description?: string } = {};
 
       if (payload.provider === "gemini") {
-        const baseUrl = payload.baseUrl.replace(/\/+$/, "");
-        const res = await fetch(`${baseUrl}/interactions?key=${payload.apiKey}`, {
+        const baseUrl = normalizeGeminiBaseUrl(payload.baseUrl);
+        const res = await fetch(`${baseUrl}/interactions`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "x-goog-api-key": payload.apiKey,
           },
           body: JSON.stringify({
-            model: payload.model,
+            model: payload.model || "gemini-3.7-flash",
             input: userPrompt,
           }),
         });
@@ -812,8 +814,18 @@ DESKRIPSI: [deskripsi kegiatan]`;
             error: err?.error?.message || `Gemini API error: ${res.status}`,
           };
         }
+
+        function normalizeGeminiBaseUrl(baseUrl: string): string {
+          const configuredUrl = baseUrl.trim().replace(/\/+$/, "");
+          const defaultUrl = "https://generativelanguage.googleapis.com/v1beta";
+
+          if (!configuredUrl) return defaultUrl;
+
+          return configuredUrl.replace(/\/(?:interactions|models)$/, "");
+        }
         const data = (await res.json()) as any;
         const text =
+          data?.outputs?.find((output: any) => output?.type === "text")?.text ||
           data?.output?.text ||
           data?.candidates?.[0]?.content?.parts?.[0]?.text ||
           data?.response?.output?.text ||
