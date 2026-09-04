@@ -5,6 +5,10 @@ import { exec, spawn } from "child_process";
 import Database from "better-sqlite3";
 import { parseDocument } from "./parser";
 import { getBinaryPath } from "./binManager";
+import {
+  extractAiText,
+  parseAiResponse,
+} from "./ai-response-parser";
 
 let mainWindow: BrowserWindow | null = null;
 let db: Database.Database | null = null;
@@ -806,6 +810,7 @@ DESKRIPSI: [deskripsi kegiatan]`;
           body: JSON.stringify({
             model: payload.model || "gemini-3.7-flash",
             input: userPrompt,
+            system_instruction: systemPrompt,
           }),
         });
         if (!res.ok) {
@@ -815,21 +820,12 @@ DESKRIPSI: [deskripsi kegiatan]`;
           };
         }
 
-        function normalizeGeminiBaseUrl(baseUrl: string): string {
-          const configuredUrl = baseUrl.trim().replace(/\/+$/, "");
-          const defaultUrl = "https://generativelanguage.googleapis.com/v1beta";
-
-          if (!configuredUrl) return defaultUrl;
-
-          return configuredUrl.replace(/\/(?:interactions|models)$/, "");
-        }
         const data = (await res.json()) as any;
-        const text =
-          data?.outputs?.find((output: any) => output?.type === "text")?.text ||
-          data?.output?.text ||
-          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-          data?.response?.output?.text ||
-          "";
+
+        const text = extractAiText(data);
+        if (!text) {
+          return { error: "Gemini returned an empty response" };
+        }
         result = parseAiResponse(text, payload.target);
       } else {
         // OpenAI-compatible
@@ -855,8 +851,18 @@ DESKRIPSI: [deskripsi kegiatan]`;
           return { error: err?.error?.message || `API error: ${res.status}` };
         }
         const data = (await res.json()) as any;
-        const text = data?.choices?.[0]?.message?.content || "";
+        const text = extractAiText(data?.choices?.[0]?.message?.content);
         result = parseAiResponse(text, payload.target);
+      }
+
+      const hasName = Boolean(result.name?.trim());
+      const hasDescription = Boolean(result.description?.trim());
+      if (
+        (payload.target === "name" && !hasName) ||
+        (payload.target === "description" && !hasDescription) ||
+        (payload.target === "both" && (!hasName || !hasDescription))
+      ) {
+        return { error: "AI returned an incomplete response" };
       }
 
       return result;
@@ -866,27 +872,13 @@ DESKRIPSI: [deskripsi kegiatan]`;
   },
 );
 
-function parseAiResponse(
-  text: string,
-  target: string,
-): { name?: string; description?: string } {
-  const cleaned = text.trim();
-  if (target === "both") {
-    const nameMatch = cleaned.match(/NAMA:\s*(.+)/i);
-    const descMatch = cleaned.match(/DESKRIPSI:\s*(.+)/i);
-    return {
-      name: nameMatch
-        ? nameMatch[1].trim().substring(0, 100)
-        : cleaned.substring(0, 100),
-      description: descMatch
-        ? descMatch[1].trim().substring(0, 300)
-        : cleaned.substring(0, 300),
-    };
-  }
-  if (target === "name") {
-    return { name: cleaned.substring(0, 100) };
-  }
-  return { description: cleaned.substring(0, 300) };
+function normalizeGeminiBaseUrl(baseUrl: string): string {
+  const configuredUrl = baseUrl.trim().replace(/\/+$/, "");
+  const defaultUrl = "https://generativelanguage.googleapis.com/v1beta";
+
+  if (!configuredUrl) return defaultUrl;
+
+  return configuredUrl.replace(/\/(?:interactions|models)$/, "");
 }
 
 ipcMain.handle("get-file-text", async (_event, filePath: string) => {

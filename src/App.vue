@@ -316,6 +316,7 @@ const isGeneratingName = ref(false)
 const isGeneratingDesc = ref(false)
 const isGeneratingAll = ref(false)
 const fileRawText = ref('')
+let fileSelectionRequest = 0
 
 const formOptions = ref({
   tipe: [] as any[],
@@ -407,6 +408,7 @@ onMounted(async () => {
 const selectFolder = async () => {
   // @ts-ignore
   if (window.ipcRenderer) {
+    fileSelectionRequest++
     // @ts-ignore
     const result = await window.ipcRenderer.invoke('select-folder')
     if (result) {
@@ -452,9 +454,11 @@ const refreshFolder = async () => {
 }
 
 const selectFile = async (file: TreeNode) => {
+  const requestId = ++fileSelectionRequest
 
   let size = 0
   let mtime = ''
+  fileRawText.value = ''
   // @ts-ignore
   if (window.ipcRenderer) {
     // @ts-ignore
@@ -464,6 +468,8 @@ const selectFile = async (file: TreeNode) => {
       size = stats.size
     }
   }
+
+  if (requestId !== fileSelectionRequest) return
 
   selectedFile.value = { ...file, size, mtime }
 
@@ -475,6 +481,8 @@ const selectFile = async (file: TreeNode) => {
       // @ts-ignore
       const parsedData = await window.ipcRenderer.invoke('parse-file', file.path, file.type)
 
+      if (requestId !== fileSelectionRequest) return
+
       formData.value = { ...formData.value, ...parsedData, date: mtime || parsedData.date || '' }
 
       fileRawText.value = parsedData.rawText || ''
@@ -482,6 +490,7 @@ const selectFile = async (file: TreeNode) => {
       file.parsedData = { ...parsedData, date: formData.value.date }
     } else {
       setTimeout(() => {
+        if (requestId !== fileSelectionRequest) return
         formData.value = { ...formData.value, name: `Parsed: ${file.name}`, description: 'Auto-extracted', date: mtime || new Date().toISOString().split('T')[0] }
         file.status = 'ready'
         file.parsedData = { name: formData.value.name, description: formData.value.description, date: formData.value.date }
@@ -493,6 +502,7 @@ const selectFile = async (file: TreeNode) => {
     if (window.ipcRenderer) {
       // @ts-ignore
       const rawText = await window.ipcRenderer.invoke('get-file-text', file.path)
+      if (requestId !== fileSelectionRequest) return
       fileRawText.value = rawText || ''
     }
   }
@@ -537,6 +547,7 @@ const logout = async () => {
 
 const generateAiContent = async (target: 'name' | 'description' | 'both') => {
   if (!selectedFile.value) return
+  const requestId = fileSelectionRequest
   if (!aiSettings.value.apiKey) {
     showToast("Please configure AI settings first!", "error")
     showAiSettings.value = true
@@ -547,14 +558,11 @@ const generateAiContent = async (target: 'name' | 'description' | 'both') => {
     if (window.ipcRenderer) {
       // @ts-ignore
       const rawText = await window.ipcRenderer.invoke('get-file-text', selectedFile.value.path)
-
-      console.log({ rawText })
+      if (requestId !== fileSelectionRequest) return
 
       fileRawText.value = rawText || ''
     }
   }
-
-  console.log({ fileRawText: fileRawText.value })
 
 
   if (!fileRawText.value) {
@@ -577,6 +585,8 @@ const generateAiContent = async (target: 'name' | 'description' | 'both') => {
       target
     })
 
+    if (requestId !== fileSelectionRequest) return
+
     if (result.error) {
       showToast(result.error, "error")
     } else {
@@ -585,11 +595,13 @@ const generateAiContent = async (target: 'name' | 'description' | 'both') => {
       showToast("Generated with AI!", "success")
     }
   } catch {
-    showToast("Failed to generate with AI", "error")
+    if (requestId === fileSelectionRequest) {
+      showToast("Failed to generate with AI", "error")
+    }
+  } finally {
+    if (target === 'name') isGeneratingName.value = false
+    if (target === 'description') isGeneratingDesc.value = false
   }
-
-  if (target === 'name') isGeneratingName.value = false
-  if (target === 'description') isGeneratingDesc.value = false
 }
 
 const openAiSettings = () => {
@@ -598,6 +610,7 @@ const openAiSettings = () => {
 
 const generateAll = async () => {
   if (!selectedFile.value) return
+  const requestId = fileSelectionRequest
   if (!aiSettings.value.apiKey) {
     showToast("Please configure AI settings first!", "error")
     showAiSettings.value = true
@@ -608,6 +621,7 @@ const generateAll = async () => {
     if (window.ipcRenderer) {
       // @ts-ignore
       const rawText = await window.ipcRenderer.invoke('get-file-text', selectedFile.value.path)
+      if (requestId !== fileSelectionRequest) return
       fileRawText.value = rawText || ''
     }
   }
@@ -630,6 +644,8 @@ const generateAll = async () => {
       target: 'both'
     })
 
+    if (requestId !== fileSelectionRequest) return
+
     if (result.error) {
       showToast(result.error, "error")
     } else {
@@ -638,10 +654,12 @@ const generateAll = async () => {
       showToast("All fields generated with AI!", "success")
     }
   } catch {
-    showToast("Failed to generate with AI", "error")
+    if (requestId === fileSelectionRequest) {
+      showToast("Failed to generate with AI", "error")
+    }
+  } finally {
+    isGeneratingAll.value = false
   }
-
-  isGeneratingAll.value = false
 }
 
 const syncData = async () => {
