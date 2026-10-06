@@ -13,8 +13,8 @@
           <!-- Header -->
           <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <IoOutlineSparkles class="text-primary text-lg" />
-              <h3 class="text-lg font-bold text-gray-800">AI Settings</h3>
+              <IoOutlineCog class="text-primary text-lg" />
+              <h3 class="text-lg font-bold text-gray-800">Settings</h3>
             </div>
             <button @click="close"
               class="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600">
@@ -24,8 +24,39 @@
             </button>
           </div>
 
+          <!-- Tabs -->
+          <div class="px-6 pt-4 shrink-0">
+            <div class="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg">
+              <button @click="activeTab = 'general'"
+                :class="['px-4 py-2 rounded-md text-sm font-medium transition-all', activeTab === 'general' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700']">
+                General
+              </button>
+              <button @click="activeTab = 'ai'"
+                :class="['px-4 py-2 rounded-md text-sm font-medium transition-all', activeTab === 'ai' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700']">
+                AI
+              </button>
+            </div>
+          </div>
+
           <!-- Body -->
           <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1">
+            <!-- General -->
+            <div v-if="activeTab === 'general'">
+              <div class="flex items-start justify-between gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div>
+                  <p class="text-sm font-medium text-gray-700">Isi otomatis form</p>
+                  <p class="text-xs text-gray-500 mt-0.5">Saat file ditekan, otomatis parsing dan mengisi Nama &amp; Deskripsi Kegiatan.</p>
+                </div>
+                <button @click="autoFill = !autoFill" :title="autoFill ? 'Matikan' : 'Hidupkan'"
+                  :class="['relative w-10 h-6 rounded-full transition-colors shrink-0 mt-0.5', autoFill ? 'bg-primary' : 'bg-gray-300']">
+                  <span
+                    :class="['absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all', autoFill ? 'left-[18px]' : 'left-0.5']"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- AI -->
+            <div v-if="activeTab === 'ai'" class="space-y-4">
             <!-- Provider -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1.5">Provider</label>
@@ -129,6 +160,7 @@
               <button @click="form.systemPrompt = defaultPrompt" class="text-xs text-primary hover:underline mt-1">
                 Reset ke default
               </button>
+              </div>
             </div>
           </div>
 
@@ -138,9 +170,9 @@
               class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               Cancel
             </button>
-            <button @click="save" :disabled="!form.apiKey || !form.model"
+            <button @click="save" :disabled="!canSave"
               class="px-5 py-2 text-sm font-medium text-white bg-primary hover:bg-blue-600 rounded-lg shadow-sm transition-all flex items-center gap-2"
-              :class="{ 'opacity-50 cursor-not-allowed': !form.apiKey || !form.model }">
+              :class="{ 'opacity-50 cursor-not-allowed': !canSave }">
               <IoOutlineCheckmarkCircle class="text-sm" />
               Save
             </button>
@@ -154,7 +186,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import {
-  IoOutlineSparkles,
+  IoOutlineCog,
   IoOutlineSync,
   IoOutlineCheckmarkCircle,
   IoOutlineWarning,
@@ -189,9 +221,17 @@ const form = ref({
 const models = ref<string[]>([])
 const isTesting = ref(false)
 const connectionStatus = ref<'idle' | 'success' | 'error'>('idle')
+const autoFill = ref(true)
+const activeTab = ref<'general' | 'ai'>('general')
 
 const modelOptions = computed(() =>
   models.value.map(m => ({ label: m, value: m }))
+)
+
+// Save selalu bisa di tab General (menyimpan setting general). Di tab AI
+// tetap disyaratkan apiKey + model agar tidak menyimpan konfigurasi kosong.
+const canSave = computed(() =>
+  activeTab.value === 'general' || (!!form.value.apiKey && !!form.value.model)
 )
 
 const close = () => {
@@ -201,6 +241,9 @@ const close = () => {
 const loadSettings = async () => {
   // @ts-ignore
   if (window.ipcRenderer) {
+    // @ts-ignore
+    const savedAutoFill = await window.ipcRenderer.invoke('get-setting', 'auto_fill')
+    autoFill.value = savedAutoFill !== '0'
     // @ts-ignore
     const settings = await window.ipcRenderer.invoke('get-ai-settings')
 
@@ -253,6 +296,8 @@ const save = async () => {
   // @ts-ignore
   if (window.ipcRenderer) {
     // @ts-ignore
+    await window.ipcRenderer.invoke('save-setting', 'auto_fill', autoFill.value ? '1' : '0')
+    // @ts-ignore
     await window.ipcRenderer.invoke('save-ai-settings', { ...form.value })
   }
   emit('saved')
@@ -261,6 +306,7 @@ const save = async () => {
 
 watch(() => props.modelValue, (val) => {
   if (val) {
+    activeTab.value = 'general'
     loadSettings()
     connectionStatus.value = 'idle'
     models.value = []

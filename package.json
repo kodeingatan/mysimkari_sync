@@ -71,5 +71,11 @@
     "vite-plugin-electron-renderer": "^0.14.7",
     "vitest": "^4.1.11",
     "vue-tsc": "^2.1.6"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true,
+    "electron@33.4.11": true,
+    "esbuild@0.21.5": true,
+    "tesseract.js@7.0.0": true
   }
 }

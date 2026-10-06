@@ -233,7 +233,7 @@
     </Transition>
 
     <!-- AI Settings Modal -->
-    <AiSettingsModal v-model="showAiSettings" @saved="() => showToast('AI settings saved!', 'success')" />
+    <AiSettingsModal v-model="showAiSettings" @saved="onSettingsSaved" />
   </div>
 </template>
 
@@ -303,6 +303,22 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
 
 // AI Settings
 const showAiSettings = ref(false)
+// Auto-fill form (nama & deskripsi) saat file ditekan. Default hidup.
+const autoFill = ref(true)
+
+const loadAutoFill = async () => {
+  // @ts-ignore
+  if (window.ipcRenderer) {
+    // @ts-ignore
+    const saved = await window.ipcRenderer.invoke('get-setting', 'auto_fill')
+    autoFill.value = saved !== '0'
+  }
+}
+
+const onSettingsSaved = async () => {
+  await loadAutoFill()
+  showToast('Settings saved!', 'success')
+}
 const aiSettings = ref({
   provider: '',
   apiKey: '',
@@ -406,6 +422,8 @@ onMounted(async () => {
     // @ts-ignore
     const aiCfg = await window.ipcRenderer.invoke('get-ai-settings')
     if (aiCfg) aiSettings.value = aiCfg
+
+    await loadAutoFill()
   }
 })
 
@@ -429,6 +447,17 @@ const selectFolder = async () => {
   }
 }
 
+const findInTree = (tree: TreeNode[], path: string): TreeNode | null => {
+  for (const node of tree) {
+    if (node.path === path) return node
+    if (node.children) {
+      const found = findInTree(node.children, path)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 const refreshFolder = async () => {
   if (!currentFolderPath.value) return
 
@@ -440,17 +469,7 @@ const refreshFolder = async () => {
       files.value = result
       // Keep selection if possible
       if (selectedFile.value) {
-        const findInTree = (tree: TreeNode[]): TreeNode | null => {
-          for (const node of tree) {
-            if (node.path === selectedFile.value?.path) return node
-            if (node.children) {
-              const found = findInTree(node.children)
-              if (found) return found
-            }
-          }
-          return null
-        }
-        const updated = findInTree(files.value)
+        const updated = findInTree(files.value, selectedFile.value.path)
         if (updated) selectedFile.value = updated
       }
     }
@@ -477,6 +496,28 @@ const selectFile = async (file: TreeNode) => {
 
   selectedFile.value = { ...file, size, mtime }
 
+  if (file.parsedData) {
+    // File sudah punya data tersimpan (DB / hasil sync / parse): tampilkan
+    // kembali di form, apa pun posisi setting auto-isi.
+    formData.value = { ...formData.value, ...file.parsedData, date: mtime || (file.parsedData as any).date || '' }
+    // @ts-ignore
+    if (window.ipcRenderer) {
+      // @ts-ignore
+      const rawText = await window.ipcRenderer.invoke('get-file-text', file.path)
+      if (requestId !== fileSelectionRequest) return
+      fileRawText.value = rawText || ''
+    }
+    return
+  }
+
+  if (!autoFill.value) {
+    // Belum ada data tersimpan + auto-isi mati: jangan parsing dan jangan
+    // mengosongkan form — biarkan nama/deskripsi file sebelumnya tetap
+    // terisi. Hanya tanggal yang mengikuti file saat ini.
+    formData.value = { ...formData.value, date: mtime || '' }
+    return
+  }
+
   if (file.status === 'unprocessed') {
     // Attempt to parse
     formData.value = { ...formData.value, name: 'Parsing...', description: 'Extracting data...', date: mtime || '' }
@@ -500,16 +541,8 @@ const selectFile = async (file: TreeNode) => {
         file.parsedData = { name: formData.value.name, description: formData.value.description, date: formData.value.date }
       }, 1000)
     }
-  } else if (file.parsedData) {
-    formData.value = { ...formData.value, ...file.parsedData, date: mtime || (file.parsedData as any).date || '' }
-    // @ts-ignore
-    if (window.ipcRenderer) {
-      // @ts-ignore
-      const rawText = await window.ipcRenderer.invoke('get-file-text', file.path)
-      if (requestId !== fileSelectionRequest) return
-      fileRawText.value = rawText || ''
-    }
   }
+  // Status ready/synced tanpa parsedData: biarkan form apa adanya.
 }
 
 // Update Sasaran Kinerja when Indikator changes
@@ -682,8 +715,18 @@ const syncData = async () => {
     const success = await window.ipcRenderer.invoke('sync-data', selectedFile.value.path, JSON.parse(JSON.stringify(formData.value)))
     isSyncing.value = false
     if (success) {
+      const syncedData = { ...formData.value }
+      // Update node di tree (bukan hanya salinan selectedFile) agar status &
+      // parsedData tidak basi. Klik ulang / refresh akan memuat nilai yang
+      // baru di-sync, bukan me-re-parse dan menimpa form. Form dibiarkan apa
+      // adanya sesuai permintaan.
+      const node = findInTree(files.value, selectedFile.value.path)
+      if (node) {
+        node.status = 'synced'
+        node.parsedData = { ...syncedData }
+      }
       selectedFile.value.status = 'synced'
-      selectedFile.value.parsedData = { ...formData.value }
+      selectedFile.value.parsedData = { ...syncedData }
       showToast("Successfully synced to MySimkari!", "success")
       fetchSyncHistory()
     } else {
@@ -691,8 +734,14 @@ const syncData = async () => {
     }
   } else {
     setTimeout(() => {
+      const syncedData = { ...formData.value }
+      const node = findInTree(files.value, selectedFile.value!.path)
+      if (node) {
+        node.status = 'synced'
+        node.parsedData = { ...syncedData }
+      }
       selectedFile.value!.status = 'synced'
-      selectedFile.value!.parsedData = { ...formData.value }
+      selectedFile.value!.parsedData = { ...syncedData }
       isSyncing.value = false
       showToast("Successfully synced to MySimkari!", "success")
     }, 1500)

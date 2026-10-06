@@ -4,7 +4,7 @@
       <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wider overflow-hidden whitespace-nowrap">Explorer</h2>
       <div class="flex items-center gap-1">
         <button @click="$emit('open-ai-settings')"
-          class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="AI Settings">
+          class="p-1.5 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center" title="Settings">
           <IoOutlineCog class="text-lg" />
         </button>
         <button @click="$emit('refresh')"
@@ -17,13 +17,42 @@
         </button>
       </div>
     </div>
+    <div class="p-3 border-b border-gray-100 bg-gray-50/50 space-y-2 shrink-0">
+      <div class="flex items-center justify-between">
+        <span class="font-semibold text-gray-600 text-[11px] uppercase tracking-wider" title="Berdasarkan tanggal modifikasi file/folder">Filter Tgl Modifikasi</span>
+        <button v-if="isFiltering" @click="clearDateFilter"
+          class="text-[11px] text-primary hover:underline">
+          Reset
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="block min-w-0">
+          <span class="text-[11px] text-gray-500">Dari</span>
+          <input v-model="startDate" type="date"
+            class="mt-0.5 w-full px-2 py-1.5 rounded-md border border-gray-200 text-xs outline-none focus:border-primary bg-white" />
+        </label>
+        <label class="block min-w-0">
+          <span class="text-[11px] text-gray-500">Sampai</span>
+          <input v-model="endDate" type="date"
+            class="mt-0.5 w-full px-2 py-1.5 rounded-md border border-gray-200 text-xs outline-none focus:border-primary bg-white" />
+        </label>
+      </div>
+      <p v-if="isFiltering" class="text-[11px] text-gray-500">
+        {{ matchCount }} file cocok
+      </p>
+    </div>
     <div class="flex-1 overflow-y-auto p-2">
       <div v-if="files.length === 0" class="text-center text-sm text-gray-400 mt-10">
         No folder selected.<br />Click the + icon to select.
       </div>
+      <div v-else-if="filteredFiles.length === 0" class="text-center text-sm text-gray-400 mt-10 px-4">
+        Tidak ada file pada rentang tanggal ini.<br />
+        <button @click="clearDateFilter" class="text-primary hover:underline mt-1">Reset filter</button>
+      </div>
       <ul v-else class="space-y-0.5">
-        <AppSidebarNode v-for="node in files" :key="node.path" :node="node" :selectedFile="selectedFile"
-          @select-file="$emit('select-file', $event)" @context-menu="handleContextMenu" />
+        <AppSidebarNode v-for="node in filteredFiles" :key="node.path" :node="node" :selectedFile="selectedFile"
+          :force-open="isFiltering" @select-file="$emit('select-file', $event)"
+          @context-menu="handleContextMenu" />
       </ul>
     </div>
 
@@ -35,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue'
+import { ref, h, computed } from 'vue'
 import {
   IoOutlineAddCircle,
   IoOutlineOpen,
@@ -51,6 +80,7 @@ import {
 } from '@kalimahapps/vue-icons'
 import AppSidebarNode from './AppSidebarNode.vue'
 import ContextMenu, { MenuItem } from '../ui/ContextMenu.vue'
+import { filterTreeByDateRange, countFiles } from '../../utils/filterTree'
 
 export interface TreeNode {
   name: string
@@ -68,7 +98,7 @@ export interface TreeNode {
   }
 }
 
-defineProps<{
+const props = defineProps<{
   files: TreeNode[]
   selectedFile: TreeNode | null
   width: number
@@ -81,6 +111,24 @@ const emit = defineEmits<{
   (e: 'show-toast', message: string, type: 'success' | 'error' | 'info'): void
   (e: 'open-ai-settings'): void
 }>()
+
+// Date range filter: files match by mtime (YYYY-MM-DD); folders are kept
+// only when they contain at least one matching descendant.
+const startDate = ref('')
+const endDate = ref('')
+
+const isFiltering = computed(() => startDate.value !== '' || endDate.value !== '')
+
+const filteredFiles = computed(() =>
+  filterTreeByDateRange(props.files, startDate.value, endDate.value)
+)
+
+const matchCount = computed(() => countFiles(filteredFiles.value))
+
+const clearDateFilter = () => {
+  startDate.value = ''
+  endDate.value = ''
+}
 
 // Context Menu State
 const showContextMenu = ref(false)

@@ -9,21 +9,22 @@
       >
         <IoOutlineChevronForward 
           class="shrink-0 transition-transform duration-200 text-gray-400" 
-          :class="{'rotate-90': isOpen}"
+          :class="{'rotate-90': isOpen || forceOpen}"
         />
         <component 
-          :is="isOpen ? IoSharpFolderOpen : IoSharpFolder" 
+          :is="(isOpen || forceOpen) ? IoSharpFolderOpen : IoSharpFolder" 
           class="text-blue-400 shrink-0 text-lg"
         />
         <span class="truncate">{{ node.name }}</span>
       </div>
       
-      <div v-if="isOpen && node.children" class="ml-3 border-l border-gray-100 pl-2 mt-0.5 space-y-0.5">
+      <div v-if="(isOpen || forceOpen) && node.children" class="ml-3 border-l border-gray-100 pl-2 mt-0.5 space-y-0.5">
         <AppSidebarNode 
           v-for="child in node.children" 
           :key="child.path" 
           :node="child"
           :selectedFile="selectedFile"
+          :force-open="forceOpen"
           @select-file="$emit('select-file', $event)"
           @context-menu="$emit('context-menu', $event)"
         />
@@ -54,6 +55,7 @@ import type { TreeNode } from './AppSidebar.vue'
 defineProps<{
   node: TreeNode
   selectedFile: any
+  forceOpen?: boolean
 }>()
 
 defineEmits<{

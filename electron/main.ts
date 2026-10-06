@@ -23,11 +23,42 @@ const DIST_ELECTRON = join(__dirname, "../dist-electron");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const DB_PATH = join(app.getPath("userData"), "mysimkari.sqlite");
 
-function initDB() {
-  db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
+function isCorruptionError(err: any): boolean {
+  if (!err) return false;
+  if ((err as any).code === "SQLITE_CORRUPT") return true;
+  const msg = String((err as any).message || err);
+  return /malformed|corrupt|not a database/i.test(msg);
+}
 
-  db.exec(`
+function backupAndRemoveDbFiles(): void {
+  try {
+    try {
+      db?.close();
+    } catch {}
+    db = null;
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    // Keep a backup of the corrupt file for forensics, then start fresh.
+    if (fs.existsSync(DB_PATH)) {
+      try {
+        fs.renameSync(DB_PATH, `${DB_PATH}.corrupt-${stamp}.bak`);
+      } catch {
+        try {
+          fs.unlinkSync(DB_PATH);
+        } catch {}
+      }
+    }
+    for (const suffix of ["-wal", "-shm", "-journal"]) {
+      try {
+        if (fs.existsSync(`${DB_PATH}${suffix}`)) fs.unlinkSync(`${DB_PATH}${suffix}`);
+      } catch {}
+    }
+  } catch (err) {
+    console.error("Failed to remove corrupt database files:", err);
+  }
+}
+
+function createSchema(target: Database.Database): void {
+  target.exec(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT
@@ -45,8 +76,59 @@ function initDB() {
   `);
   // Add raw_text column if missing (for existing DBs)
   try {
-    db.exec(`ALTER TABLE documents ADD COLUMN raw_text TEXT`);
+    target.exec(`ALTER TABLE documents ADD COLUMN raw_text TEXT`);
   } catch {}
+}
+
+function initDB(hasRetried = false) {
+  try {
+    db = new Database(DB_PATH);
+    db.pragma("busy_timeout = 5000");
+    db.pragma("journal_mode = WAL");
+    db.pragma("synchronous = FULL");
+
+    // Fail fast if the file is already corrupt instead of crashing later
+    // inside readDirRecursive / select-folder.
+    const check = db.prepare("PRAGMA integrity_check").get() as any;
+    if (check && check.integrity_check && check.integrity_check !== "ok") {
+      throw Object.assign(new Error(`integrity_check failed: ${check.integrity_check}`), {
+        code: "SQLITE_CORRUPT",
+      });
+    }
+
+    createSchema(db);
+  } catch (err) {
+    console.error("initDB failed:", err);
+    if (!hasRetried && isCorruptionError(err)) {
+      console.error("Database appears corrupt, backing up and recreating...");
+      backupAndRemoveDbFiles();
+      return initDB(true);
+    }
+    throw err;
+  }
+}
+
+/** Run a DB callback; if the file turns out to be corrupt mid-session, back it up, recreate, and retry once. */
+function withDbRecovery<T>(fn: () => T): T {
+  try {
+    return fn();
+  } catch (err) {
+    if (!isCorruptionError(err)) throw err;
+    console.error("SQLite corruption detected, recovering...", err);
+    backupAndRemoveDbFiles();
+    initDB(true);
+    return fn();
+  }
+}
+
+function safeGet(sql: string, ...params: any[]): any {
+  if (!db) initDB();
+  return withDbRecovery(() => (db as Database.Database).prepare(sql).get(...params) as any);
+}
+
+function safeRun(sql: string, ...params: any[]): void {
+  if (!db) initDB();
+  withDbRecovery(() => (db as Database.Database).prepare(sql).run(...params));
 }
 
 function createWindow() {
@@ -75,7 +157,11 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  initDB();
+  try {
+    initDB();
+  } catch (err) {
+    console.error("Failed to initialize database on startup:", err);
+  }
   createWindow();
 
   app.on("activate", () => {
@@ -86,42 +172,97 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
+  try {
+    try {
+      db?.pragma("wal_checkpoint(TRUNCATE)");
+    } catch {}
+    try {
+      db?.close();
+    } catch {}
+  } finally {
+    db = null;
+  }
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
+app.on("before-quit", () => {
+  try {
+    try {
+      db?.pragma("wal_checkpoint(TRUNCATE)");
+    } catch {}
+    try {
+      db?.close();
+    } catch {}
+  } finally {
+    db = null;
+  }
+});
+
 // IPC Handlers
 ipcMain.handle("select-folder", async () => {
-  const result = await dialog.showOpenDialog(mainWindow!, {
-    properties: ["openDirectory"],
-  });
+  try {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ["openDirectory"],
+    });
 
-  if (result.canceled) return null;
+    if (result.canceled) return null;
 
-  const folderPath = result.filePaths[0];
-  const fileTree = readDirRecursive(folderPath);
-  return { folderPath, fileTree };
+    const folderPath = result.filePaths[0];
+    const fileTree = readDirRecursive(folderPath);
+    return { folderPath, fileTree };
+  } catch (err) {
+    console.error("select-folder failed:", err);
+    throw err instanceof Error ? err : new Error("Failed to read folder");
+  }
 });
 
 ipcMain.handle("read-folder", async (_event, folderPath: string) => {
-  if (!fs.existsSync(folderPath)) return null;
-  return readDirRecursive(folderPath);
+  try {
+    if (!fs.existsSync(folderPath)) return null;
+    return readDirRecursive(folderPath);
+  } catch (err) {
+    console.error("read-folder failed:", err);
+    throw err instanceof Error ? err : new Error("Failed to read folder");
+  }
 });
 
 function readDirRecursive(dirPath: string): any[] {
   const items: any[] = [];
-  const files = fs.readdirSync(dirPath, { withFileTypes: true });
+  let files: fs.Dirent[];
+  try {
+    files = fs.readdirSync(dirPath, { withFileTypes: true });
+  } catch (err) {
+    console.error(`Cannot read directory ${dirPath}:`, err);
+    return items;
+  }
+
+  // Ensure DB is open before scanning; if it's corrupt, initDB() already
+  // backed it up and recreated it. If it still fails, continue without cache
+  // so a DB problem never aborts the folder scan.
+  try {
+    if (!db) initDB();
+  } catch (err) {
+    console.error("DB unavailable during folder scan, continuing without cache:", err);
+  }
 
   for (const f of files) {
     const fullPath = join(dirPath, f.name);
     if (f.isDirectory()) {
       const children = readDirRecursive(fullPath);
       if (children.length > 0) {
+        // Folder modification date, so folders can also match the sidebar
+        // date-range filter directly (e.g. renamed / new files added inside).
+        let folderMtime = "";
+        try {
+          folderMtime = fs.statSync(fullPath).mtime.toISOString().split("T")[0];
+        } catch {}
         items.push({
           name: f.name,
           path: fullPath,
           type: "folder",
+          mtime: folderMtime,
           children,
         });
       }
@@ -132,20 +273,47 @@ function readDirRecursive(dirPath: string): any[] {
       )
     ) {
       const ext = extname(fullPath).toLowerCase().replace(".", "");
-      const existing = db
-        ?.prepare("SELECT * FROM documents WHERE path = ?")
-        .get(fullPath) as any;
+      // File date/size for the sidebar date-range filter. Stat here so the
+      // renderer can filter without an IPC call per file.
+      let mtime = "";
+      let size = 0;
+      try {
+        const stats = fs.statSync(fullPath);
+        mtime = stats.mtime.toISOString().split("T")[0];
+        size = stats.size;
+      } catch {}
+      let existing: any = null;
+      try {
+        // Re-prepare on every call so a mid-scan recovery (which replaces the
+        // db handle) never leaves us with a stale prepared statement.
+        existing = safeGet("SELECT * FROM documents WHERE path = ?", fullPath);
+      } catch (err) {
+        // A single bad row / transient error must not abort the whole scan.
+        console.error(`DB lookup failed for ${fullPath}, treating as unprocessed:`, err);
+        existing = null;
+      }
 
       if (!existing) {
-        db?.prepare(
-          "INSERT INTO documents (path, name, type, status) VALUES (?, ?, ?, ?)",
-        ).run(fullPath, f.name, ext, "unprocessed");
+        try {
+          safeRun(
+            "INSERT INTO documents (path, name, type, status) VALUES (?, ?, ?, ?)",
+            fullPath,
+            f.name,
+            ext,
+            "unprocessed",
+          );
+        } catch (err) {
+          console.error(`DB insert failed for ${fullPath}:`, err);
+          // Fall through: still show the file, just without persisting.
+        }
         items.push({
           name: f.name,
           path: fullPath,
           type: "file",
           fileType: ext,
           status: "unprocessed",
+          mtime,
+          size,
         });
       } else {
         items.push({
@@ -154,6 +322,8 @@ function readDirRecursive(dirPath: string): any[] {
           type: "file",
           fileType: existing.type,
           status: existing.status,
+          mtime,
+          size,
           parsedData: existing.parsed_name
             ? {
                 name: existing.parsed_name,
@@ -170,9 +340,8 @@ function readDirRecursive(dirPath: string): any[] {
 
 ipcMain.handle("parse-file", async (_event, path: string, type: string) => {
   const parsedData = await parseDocument(path, type);
-  db?.prepare(
+  safeRun(
     "UPDATE documents SET parsed_name = ?, parsed_desc = ?, parsed_date = ?, raw_text = ?, status = ? WHERE path = ?",
-  ).run(
     parsedData.name,
     parsedData.description,
     parsedData.date,
@@ -184,9 +353,7 @@ ipcMain.handle("parse-file", async (_event, path: string, type: string) => {
 });
 
 ipcMain.handle("check-session", () => {
-  const sessionRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("session") as any;
+  const sessionRow = safeGet("SELECT value FROM settings WHERE key = ?", "session") as any;
   return !!sessionRow;
 });
 
@@ -226,12 +393,14 @@ ipcMain.handle("login-mysimkari", () => {
         if (match) {
           uniqueuserid = match[1];
 
-          db?.prepare(
+          safeRun(
             `
             INSERT OR REPLACE INTO settings (key, value)
             VALUES (?, ?)
           `,
-          ).run("uniqueuserid", uniqueuserid);
+            "uniqueuserid",
+            uniqueuserid,
+          );
         }
 
         const ses = session.fromPartition("persist:mysimkari");
@@ -240,12 +409,14 @@ ipcMain.handle("login-mysimkari", () => {
           url: "https://mysimkari.kejaksaan.go.id",
         });
 
-        db?.prepare(
+        safeRun(
           `
           INSERT OR REPLACE INTO settings (key, value)
           VALUES (?, ?)
         `,
-        ).run("session", JSON.stringify(cookies));
+          "session",
+          JSON.stringify(cookies),
+        );
 
         if (uniqueuserid && cookies.length > 0) {
           const cookieString = cookies
@@ -271,12 +442,14 @@ ipcMain.handle("login-mysimkari", () => {
             if (nipMatch) {
               const nip = nipMatch[1];
 
-              db?.prepare(
+              safeRun(
                 `
                 INSERT OR REPLACE INTO settings (key, value)
                 VALUES (?, ?)
               `,
-              ).run("nip", nip);
+                "nip",
+                nip,
+              );
             }
           } catch (err) {
             console.error("Failed to fetch NIP:", err);
@@ -307,19 +480,15 @@ ipcMain.handle("login-mysimkari", () => {
 });
 
 ipcMain.handle("logout-mysimkari", async () => {
-  db?.prepare("DELETE FROM settings WHERE key = ?").run("session");
-  db?.prepare("DELETE FROM settings WHERE key = ?").run("uniqueuserid");
+  safeRun("DELETE FROM settings WHERE key = ?", "session");
+  safeRun("DELETE FROM settings WHERE key = ?", "uniqueuserid");
   await session.fromPartition("persist:mysimkari").clearStorageData();
   return true;
 });
 
 ipcMain.handle("get-form-options", async () => {
-  const sessionRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("session") as any;
-  const userRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("uniqueuserid") as any;
+  const sessionRow = safeGet("SELECT value FROM settings WHERE key = ?", "session") as any;
+  const userRow = safeGet("SELECT value FROM settings WHERE key = ?", "uniqueuserid") as any;
 
   if (!sessionRow || !userRow) return null;
 
@@ -384,12 +553,8 @@ ipcMain.handle("get-file-stats", async (_event, path: string) => {
 });
 
 ipcMain.handle("sync-data", async (_event, path: string, formData: any) => {
-  const sessionRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("session") as any;
-  const nipRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("nip") as any;
+  const sessionRow = safeGet("SELECT value FROM settings WHERE key = ?", "session") as any;
+  const nipRow = safeGet("SELECT value FROM settings WHERE key = ?", "nip") as any;
   if (!sessionRow || !nipRow) return false;
 
   const cookies = JSON.parse(sessionRow.value);
@@ -408,9 +573,7 @@ ipcMain.handle("sync-data", async (_event, path: string, formData: any) => {
     isTempFile = result.isTemp;
 
     // 2. Fetch page to extract raw CSRF token
-    const userRow = db
-      ?.prepare("SELECT value FROM settings WHERE key = ?")
-      .get("uniqueuserid") as any;
+    const userRow = safeGet("SELECT value FROM settings WHERE key = ?", "uniqueuserid") as any;
     if (!userRow) return false;
     const uniqueuserid = userRow.value;
     const getResp = await fetch(
@@ -471,7 +634,7 @@ ipcMain.handle("sync-data", async (_event, path: string, formData: any) => {
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 419) {
-        db?.prepare("DELETE FROM settings WHERE key = ?").run("session");
+        safeRun("DELETE FROM settings WHERE key = ?", "session");
       }
       console.error(
         "Sync failed with status:",
@@ -481,9 +644,14 @@ ipcMain.handle("sync-data", async (_event, path: string, formData: any) => {
       return false;
     }
 
-    db?.prepare(
+    safeRun(
       "UPDATE documents SET parsed_name = ?, parsed_desc = ?, parsed_date = ?, status = ? WHERE path = ?",
-    ).run(formData.name, formData.description, formData.date, "synced", path);
+      formData.name,
+      formData.description,
+      formData.date,
+      "synced",
+      path,
+    );
     return true;
   } catch (error) {
     console.error("Sync error:", error);
@@ -497,12 +665,8 @@ ipcMain.handle("sync-data", async (_event, path: string, formData: any) => {
 });
 
 ipcMain.handle("get-sync-history", async () => {
-  const sessionRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("session") as any;
-  const nipRow = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get("nip") as any;
+  const sessionRow = safeGet("SELECT value FROM settings WHERE key = ?", "session") as any;
+  const nipRow = safeGet("SELECT value FROM settings WHERE key = ?", "nip") as any;
 
   if (!sessionRow || !nipRow) return null;
 
@@ -533,17 +697,12 @@ ipcMain.handle("get-sync-history", async () => {
 });
 
 ipcMain.handle("save-setting", (_event, key: string, value: string) => {
-  db?.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(
-    key,
-    value,
-  );
+  safeRun("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", key, value);
   return true;
 });
 
 ipcMain.handle("get-setting", (_event, key: string) => {
-  const row = db
-    ?.prepare("SELECT value FROM settings WHERE key = ?")
-    .get(key) as any;
+  const row = safeGet("SELECT value FROM settings WHERE key = ?", key) as any;
   return row ? row.value : null;
 });
 
@@ -669,25 +828,32 @@ ipcMain.handle(
       maxTokens: number;
     },
   ) => {
-    const upsert = db?.prepare(
+    safeRun("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", "ai_provider", settings.provider);
+    safeRun("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", "ai_api_key", settings.apiKey);
+    safeRun("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", "ai_model", settings.model);
+    safeRun("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", "ai_base_url", settings.baseUrl);
+    safeRun(
       "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      "ai_system_prompt",
+      settings.systemPrompt,
     );
-    upsert?.run("ai_provider", settings.provider);
-    upsert?.run("ai_api_key", settings.apiKey);
-    upsert?.run("ai_model", settings.model);
-    upsert?.run("ai_base_url", settings.baseUrl);
-    upsert?.run("ai_system_prompt", settings.systemPrompt);
-    upsert?.run("ai_temperature", settings.temperature.toString());
-    upsert?.run("ai_max_tokens", settings.maxTokens.toString());
+    safeRun(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      "ai_temperature",
+      settings.temperature.toString(),
+    );
+    safeRun(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      "ai_max_tokens",
+      settings.maxTokens.toString(),
+    );
     return true;
   },
 );
 
 ipcMain.handle("get-ai-settings", () => {
   const get = (key: string) => {
-    const row = db
-      ?.prepare("SELECT value FROM settings WHERE key = ?")
-      .get(key) as any;
+    const row = safeGet("SELECT value FROM settings WHERE key = ?", key) as any;
     return row ? row.value : "";
   };
   return {
