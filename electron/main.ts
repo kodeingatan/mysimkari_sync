@@ -71,13 +71,25 @@ function createSchema(target: Database.Database): void {
       parsed_name TEXT,
       parsed_desc TEXT,
       parsed_date TEXT,
-      status TEXT
+      status TEXT,
+      tipe_kegiatan TEXT,
+      kaitan_kegiatan TEXT,
+      id_indikator TEXT,
+      sasaran_kegiatan TEXT
     );
   `);
-  // Add raw_text column if missing (for existing DBs)
-  try {
-    target.exec(`ALTER TABLE documents ADD COLUMN raw_text TEXT`);
-  } catch {}
+  // Add columns if missing (for existing DBs)
+  for (const col of [
+    "raw_text TEXT",
+    "tipe_kegiatan TEXT",
+    "kaitan_kegiatan TEXT",
+    "id_indikator TEXT",
+    "sasaran_kegiatan TEXT",
+  ]) {
+    try {
+      target.exec(`ALTER TABLE documents ADD COLUMN ${col}`);
+    } catch {}
+  }
 }
 
 function initDB(hasRetried = false) {
@@ -316,6 +328,18 @@ function readDirRecursive(dirPath: string): any[] {
           size,
         });
       } else {
+        // parsedData hanya berisi nilai tersimpan yang non-kosong agar nilai
+        // form saat ini tidak tertimpa NULL dari baris lama.
+        const stored: any = {};
+        if (existing.parsed_name) {
+          stored.name = existing.parsed_name;
+          stored.description = existing.parsed_desc;
+          stored.date = existing.parsed_date;
+        }
+        if (existing.tipe_kegiatan) stored.tipe_kegiatan = existing.tipe_kegiatan;
+        if (existing.kaitan_kegiatan) stored.kaitan_kegiatan = existing.kaitan_kegiatan;
+        if (existing.id_indikator) stored.id_indikator = existing.id_indikator;
+        if (existing.sasaran_kegiatan) stored.sasaran_kegiatan = existing.sasaran_kegiatan;
         items.push({
           name: existing.name,
           path: existing.path,
@@ -324,13 +348,7 @@ function readDirRecursive(dirPath: string): any[] {
           status: existing.status,
           mtime,
           size,
-          parsedData: existing.parsed_name
-            ? {
-                name: existing.parsed_name,
-                description: existing.parsed_desc,
-                date: existing.parsed_date,
-              }
-            : undefined,
+          parsedData: Object.keys(stored).length > 0 ? stored : undefined,
         });
       }
     }
@@ -645,10 +663,14 @@ ipcMain.handle("sync-data", async (_event, path: string, formData: any) => {
     }
 
     safeRun(
-      "UPDATE documents SET parsed_name = ?, parsed_desc = ?, parsed_date = ?, status = ? WHERE path = ?",
+      "UPDATE documents SET parsed_name = ?, parsed_desc = ?, parsed_date = ?, tipe_kegiatan = ?, kaitan_kegiatan = ?, id_indikator = ?, sasaran_kegiatan = ?, status = ? WHERE path = ?",
       formData.name,
       formData.description,
       formData.date,
+      formData.tipe_kegiatan,
+      formData.kaitan_kegiatan,
+      formData.id_indikator,
+      formData.sasaran_kegiatan,
       "synced",
       path,
     );

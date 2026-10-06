@@ -251,7 +251,12 @@ const files = ref<TreeNode[]>([])
 const currentFolderPath = ref<string | null>(null)
 const selectedFile = ref<TreeNode | null>(null)
 const isLoggedIn = ref(false)
-const isSyncing = ref(false)
+// Sync dilacak per file (by path) agar satu file bisa di-sync paralel
+// dengan file lain. Tombol loading mengikuti file yang sedang dipilih.
+const syncingPaths = ref<Set<string>>(new Set())
+const isSyncing = computed(() =>
+  selectedFile.value ? syncingPaths.value.has(selectedFile.value.path) : false
+)
 const syncHistory = ref<any[]>([])
 const isLoadingHistory = ref(false)
 
@@ -707,42 +712,55 @@ const syncData = async () => {
     return
   }
 
-  isSyncing.value = true
+  const targetPath = selectedFile.value.path
+  // File ini masih dalam proses sync: abaikan klik ganda.
+  if (syncingPaths.value.has(targetPath)) return
+  // Snapshot payload saat tombol ditekan agar sync file ini tidak terpengaruh
+  // bila pengguna pindah file / mengedit form selama proses berjalan.
+  const payload = JSON.parse(JSON.stringify(formData.value))
+  syncingPaths.value.add(targetPath)
 
   // @ts-ignore
   if (window.ipcRenderer) {
-    // @ts-ignore
-    const success = await window.ipcRenderer.invoke('sync-data', selectedFile.value.path, JSON.parse(JSON.stringify(formData.value)))
-    isSyncing.value = false
-    if (success) {
-      const syncedData = { ...formData.value }
-      // Update node di tree (bukan hanya salinan selectedFile) agar status &
-      // parsedData tidak basi. Klik ulang / refresh akan memuat nilai yang
-      // baru di-sync, bukan me-re-parse dan menimpa form. Form dibiarkan apa
-      // adanya sesuai permintaan.
-      const node = findInTree(files.value, selectedFile.value.path)
-      if (node) {
-        node.status = 'synced'
-        node.parsedData = { ...syncedData }
+    try {
+      // @ts-ignore
+      const success = await window.ipcRenderer.invoke('sync-data', targetPath, payload)
+      if (success) {
+        const syncedData = { ...payload }
+        const node = findInTree(files.value, targetPath)
+        if (node) {
+          node.status = 'synced'
+          node.parsedData = { ...syncedData }
+        }
+        // Hanya sentuh selectedFile bila pengguna masih di file yang sama;
+        // bila sudah pindah file, form milik file lain tidak boleh tertimpa.
+        if (selectedFile.value?.path === targetPath) {
+          selectedFile.value.status = 'synced'
+          selectedFile.value.parsedData = { ...syncedData }
+        }
+        showToast("Successfully synced to MySimkari!", "success")
+        fetchSyncHistory()
+      } else {
+        showToast("Failed to sync! Please check your connection and login status.", "error")
       }
-      selectedFile.value.status = 'synced'
-      selectedFile.value.parsedData = { ...syncedData }
-      showToast("Successfully synced to MySimkari!", "success")
-      fetchSyncHistory()
-    } else {
+    } catch {
       showToast("Failed to sync! Please check your connection and login status.", "error")
+    } finally {
+      syncingPaths.value.delete(targetPath)
     }
   } else {
     setTimeout(() => {
-      const syncedData = { ...formData.value }
-      const node = findInTree(files.value, selectedFile.value!.path)
+      const syncedData = { ...payload }
+      const node = findInTree(files.value, targetPath)
       if (node) {
         node.status = 'synced'
         node.parsedData = { ...syncedData }
       }
-      selectedFile.value!.status = 'synced'
-      selectedFile.value!.parsedData = { ...syncedData }
-      isSyncing.value = false
+      if (selectedFile.value?.path === targetPath) {
+        selectedFile.value!.status = 'synced'
+        selectedFile.value!.parsedData = { ...syncedData }
+      }
+      syncingPaths.value.delete(targetPath)
       showToast("Successfully synced to MySimkari!", "success")
     }, 1500)
   }

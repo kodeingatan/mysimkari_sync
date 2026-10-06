@@ -95,6 +95,10 @@ export interface TreeNode {
     name: string
     description: string
     date: string
+    tipe_kegiatan?: string
+    kaitan_kegiatan?: string
+    id_indikator?: string
+    sasaran_kegiatan?: string
   }
 }
 
