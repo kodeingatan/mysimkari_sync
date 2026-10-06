@@ -340,7 +340,9 @@ const fetchOptions = async () => {
   if (window.ipcRenderer) {
     // @ts-ignore
     const options = await window.ipcRenderer.invoke('get-form-options')
-    if (options) {
+    if (options?.error === 'network') {
+      showToast(options.message || 'Gagal terhubung ke portal MySimkari.', 'error')
+    } else if (options) {
       formOptions.value = options
     }
   }
@@ -352,7 +354,9 @@ const fetchSyncHistory = async () => {
     isLoadingHistory.value = true
     // @ts-ignore
     const history = await window.ipcRenderer.invoke('get-sync-history')
-    if (history) {
+    if (history?.error === 'network') {
+      showToast(history.message || 'Gagal memuat riwayat sinkronisasi.', 'error')
+    } else if (history) {
       syncHistory.value = history
     }
     isLoadingHistory.value = false

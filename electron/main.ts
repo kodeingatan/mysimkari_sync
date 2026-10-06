@@ -6,6 +6,7 @@ import Database from "better-sqlite3";
 import sharp from "sharp";
 import { PDFDocument } from "pdf-lib";
 import { parseDocument } from "./parser";
+import { fetchWithRetry, toPortalError } from "./portal-fetch";
 import { IMAGE_EXTS } from "./parser/utils";
 import { getBinaryPath } from "./binManager";
 import {
@@ -328,7 +329,7 @@ ipcMain.handle("get-form-options", async () => {
     .join("; ");
 
   try {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://mysimkari.kejaksaan.go.id/dashboard-utama/pegawai/${userRow.value}`,
       {
         headers: { Cookie: cookieString },
@@ -366,7 +367,7 @@ ipcMain.handle("get-form-options", async () => {
     };
   } catch (error) {
     console.error("Error crawling form options:", error);
-    return null;
+    return toPortalError(error);
   }
 });
 
@@ -512,7 +513,7 @@ ipcMain.handle("get-sync-history", async () => {
   const nip = nipRow.value;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://mysimkari.kejaksaan.go.id/get-kinerja/${nip}/all/data`,
       {
         headers: {
@@ -527,7 +528,7 @@ ipcMain.handle("get-sync-history", async () => {
     return await response.json();
   } catch (error) {
     console.error("Error fetching sync history:", error);
-    return null;
+    return toPortalError(error);
   }
 });
 

@@ -38,10 +38,16 @@ export function hasLocalTessData(dir?: string): boolean {
 /**
  * Options for Tesseract.createWorker so it reads *.traineddata from local
  * bin/ instead of downloading from CDN (fully offline OCR).
+ * cacheMethod 'none' prevents tesseract from writing duplicate copies of the
+ * traineddata files into the working directory on every run.
  * Falls back to defaults (CDN) when the files are missing.
  */
-export function getTesseractOptions(): { langPath: string; gzip: boolean } | Record<string, never> {
+export function getTesseractOptions(): {
+  langPath: string;
+  gzip: boolean;
+  cacheMethod: string;
+} | Record<string, never> {
   const dir = getTessDataDir()
   if (!hasLocalTessData(dir)) return {}
-  return { langPath: dir, gzip: false }
+  return { langPath: dir, gzip: false, cacheMethod: "none" }
 }
