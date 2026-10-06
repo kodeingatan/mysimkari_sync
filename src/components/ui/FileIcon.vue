@@ -3,11 +3,12 @@
   <IoSharpDocument v-else-if="type === 'docx' || type === 'doc'" class="text-blue-500 shrink-0 text-lg" />
   <IoSharpGrid v-else-if="type === 'xlsx' || type === 'xls'" class="text-green-500 shrink-0 text-lg" />
   <IoSharpEasel v-else-if="type === 'pptx' || type === 'ppt'" class="text-orange-600 shrink-0 text-lg" />
+  <IoSharpImage v-else-if="type === 'jpg' || type === 'jpeg' || type === 'png' || type === 'bmp' || type === 'tiff' || type === 'tif' || type === 'webp' || type === 'gif'" class="text-purple-500 shrink-0 text-lg" />
   <IoSharpDocument v-else class="text-gray-400 shrink-0 text-lg" />
 </template>
 
 <script setup lang="ts">
-import { IoSharpDocumentText, IoSharpDocument, IoSharpGrid, IoSharpEasel } from '@kalimahapps/vue-icons';
+import { IoSharpDocumentText, IoSharpDocument, IoSharpGrid, IoSharpEasel, IoSharpImage } from '@kalimahapps/vue-icons';
 
 defineProps<{
   type: string

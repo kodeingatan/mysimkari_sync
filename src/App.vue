@@ -479,7 +479,7 @@ const selectFile = async (file: TreeNode) => {
     // @ts-ignore
     if (window.ipcRenderer) {
       // @ts-ignore
-      const parsedData = await window.ipcRenderer.invoke('parse-file', file.path, file.type)
+      const parsedData = await window.ipcRenderer.invoke('parse-file', file.path, file.fileType || file.type)
 
       if (requestId !== fileSelectionRequest) return
 

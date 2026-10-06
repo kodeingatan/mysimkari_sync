@@ -12,7 +12,16 @@
       "dist/**/*",
       "dist-electron/**/*"
     ],
-    "extraResources": [],
+    "extraResources": [
+      {
+        "from": "bin/eng.traineddata",
+        "to": "bin/eng.traineddata"
+      },
+      {
+        "from": "bin/ind.traineddata",
+        "to": "bin/ind.traineddata"
+      }
+    ],
     "asar": true,
     "win": {
       "target": "nsis"
@@ -37,6 +46,7 @@
     "cheerio": "^1.2.0",
     "mammoth": "^1.8.0",
     "officeparser": "^6.1.1",
+    "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^6.2.108",
     "sharp": "^0.35.3",

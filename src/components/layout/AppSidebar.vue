@@ -151,7 +151,7 @@ const getMenuItems = (node: TreeNode, apps: string[] = []): MenuItem[] => {
           }
         }
       })
-    } else if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(node.fileType || '')) {
+    } else if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt', 'jpg', 'jpeg', 'png', 'bmp', 'tiff', 'tif', 'webp', 'gif'].includes(node.fileType || '')) {
       // Office to PDF conversion
       items.push({
         label: 'Convert to PDF',

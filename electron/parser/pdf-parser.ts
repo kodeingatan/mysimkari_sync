@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import pdfParse from 'pdf-parse'
 import Tesseract from 'tesseract.js'
+import { TESS_LANGS, getTesseractOptions } from './tesseract-config'
 
 export async function parsePdf(filePath: string): Promise<string> {
   const pdfBuffer = fs.readFileSync(filePath)
@@ -18,7 +19,7 @@ async function ocrPdf(filePath: string): Promise<string> {
   let worker: Awaited<ReturnType<typeof Tesseract.createWorker>> | null = null
 
   try {
-    worker = await Tesseract.createWorker('ind+eng')
+    worker = await Tesseract.createWorker(TESS_LANGS, undefined, getTesseractOptions())
     const result = await worker.recognize(filePath)
     return result.data.text || ''
   } catch (error) {

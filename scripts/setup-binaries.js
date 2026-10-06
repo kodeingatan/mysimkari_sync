@@ -6,6 +6,12 @@ const binariesConfig = require('../config/binaries');
 const PROJECT_ROOT = path.join(__dirname, '..');
 const BIN_DIR = path.join(PROJECT_ROOT, 'bin');
 
+// Tesseract language data (LSTM) for offline OCR. Downloaded once into bin/.
+const TESSDATA_URLS = {
+  eng: 'https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata',
+  ind: 'https://github.com/tesseract-ocr/tessdata_fast/raw/main/ind.traineddata',
+};
+
 /**
  * Downloads a file using PowerShell's Invoke-WebRequest (reliable on Windows).
  */
@@ -55,6 +61,22 @@ async function setup() {
       }
     } else {
       console.log(`[OK] ${bin.name} is available.`);
+    }
+  }
+
+  // Tesseract traineddata (bin/ is gitignored, so re-download if missing)
+  for (const [lang, url] of Object.entries(TESSDATA_URLS)) {
+    const dest = path.join(BIN_DIR, `${lang}.traineddata`);
+    if (fs.existsSync(dest)) {
+      console.log(`[OK] tessdata ${lang} is available.`);
+    } else {
+      console.log(`[MISSING] tessdata ${lang} not found at ${dest}`);
+      try {
+        downloadFile(url, dest);
+        console.log(`[SUCCESS] tessdata ${lang} downloaded.`);
+      } catch (err) {
+        console.error(`[ERROR] Failed to download tessdata ${lang}:`, err.message);
+      }
     }
   }
   

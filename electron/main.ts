@@ -3,7 +3,10 @@ import path, { join, dirname, basename, extname } from "path";
 import * as fs from "fs";
 import { exec, spawn } from "child_process";
 import Database from "better-sqlite3";
+import sharp from "sharp";
+import { PDFDocument } from "pdf-lib";
 import { parseDocument } from "./parser";
+import { IMAGE_EXTS } from "./parser/utils";
 import { getBinaryPath } from "./binManager";
 import {
   extractAiText,
@@ -123,7 +126,9 @@ function readDirRecursive(dirPath: string): any[] {
       }
     } else if (
       f.isFile() &&
-      f.name.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i)
+      f.name.match(
+        /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|jpg|jpeg|png|bmp|tiff|tif|webp|gif|txt)$/i,
+      )
     ) {
       const ext = extname(fullPath).toLowerCase().replace(".", "");
       const existing = db
@@ -592,6 +597,8 @@ ipcMain.handle("get-associated-apps", async (_event, ext: string) => {
         elseif ($ext -match "\\.doc|\\.docx") { $apps += @("Winword.exe", "write.exe") }
         elseif ($ext -match "\\.xls|\\.xlsx") { $apps += @("Excel.exe") }
         elseif ($ext -match "\\.ppt|\\.pptx") { $apps += @("Powerpnt.exe") }
+        elseif ($ext -match "\\.jpg|\\.jpeg|\\.png|\\.bmp|\\.tiff|\\.tif|\\.webp|\\.gif") { $apps += @("mspaint.exe", "msedge.exe", "chrome.exe") }
+        elseif ($ext -eq ".txt") { $apps += @("notepad.exe", "write.exe") }
       }
       $apps | Select-Object -Unique | Where-Object { $_ -match "\\.exe$" } | ConvertTo-Json
     `;
@@ -638,6 +645,10 @@ ipcMain.handle("convert-to-pdf", async (_event, filePath: string) => {
   const dir = dirname(filePath);
   const name = basename(filePath, extname(filePath));
   const outPath = join(dir, `${name}_outpdf.pdf`);
+  const ext = extname(filePath).toLowerCase().replace(".", "");
+  if (IMAGE_EXTS.includes(ext)) {
+    return await convertImageToPdfInternal(filePath, outPath);
+  }
   return await convertToPdfInternal(filePath, outPath);
 });
 
@@ -905,7 +916,9 @@ async function prepareFileForSync(
     // 1. Convert to PDF if not already
     if (ext !== "pdf") {
       const pdfPath = join(app.getPath("temp"), `sync_${Date.now()}.pdf`);
-      const success = await convertToPdfInternal(filePath, pdfPath);
+      const success = IMAGE_EXTS.includes(ext)
+        ? await convertImageToPdfInternal(filePath, pdfPath)
+        : await convertToPdfInternal(filePath, pdfPath);
       if (success) {
         currentPath = pdfPath;
         isTemp = true;
@@ -1031,6 +1044,50 @@ async function runWordFallback(
       },
     );
   });
+}
+
+async function convertImageToPdfInternal(
+  filePath: string,
+  outPath: string,
+): Promise<boolean> {
+  try {
+    // Normalize any image format to JPEG, downscale if huge, then embed in a PDF.
+    // Keeps output under the 500KB portal limit when possible.
+    let quality = 80;
+    let width = 1500;
+    let jpegBuffer: Buffer = Buffer.alloc(0);
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const buf: Buffer = await sharp(filePath)
+        .rotate()
+        .resize({ width, withoutEnlargement: true })
+        .flatten({ background: "#ffffff" })
+        .jpeg({ quality, mozjpeg: true })
+        .toBuffer();
+      jpegBuffer = buf;
+
+      // Rough budget: leave room for PDF container overhead
+      if (buf.length < 450 * 1024 || quality <= 50) break;
+      quality -= 15;
+      if (quality < 50) {
+        quality = 50;
+        width = 1100;
+      }
+    }
+
+    if (jpegBuffer.length === 0) return false;
+
+    const pdf = await PDFDocument.create();
+    const img = await pdf.embedJpg(jpegBuffer);
+    const page = pdf.addPage([img.width, img.height]);
+    page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+    const bytes = await pdf.save();
+    fs.writeFileSync(outPath, Buffer.from(bytes));
+    return true;
+  } catch (err) {
+    console.error("Error converting image to PDF:", err);
+    return false;
+  }
 }
 
 async function convertToPdfInternal(

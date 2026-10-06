@@ -17,7 +17,11 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['better-sqlite3', 'pdf-parse']
+              // better-sqlite3: native module, must not be bundled.
+              // pdf-parse & tesseract.js: resolve asset/worker files via
+              // __dirname-relative paths at runtime, which breaks when inlined
+              // into the bundle (e.g. tesseract worker-script not found).
+              external: ['better-sqlite3', 'pdf-parse', 'tesseract.js']
             }
           }
         }

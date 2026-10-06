@@ -13,3 +13,4 @@ export type SupportedExtension =
   | 'jpg' | 'jpeg' | 'png'
   | 'bmp' | 'tiff' | 'tif'
   | 'webp' | 'gif'
+  | 'txt'
